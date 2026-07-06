@@ -29,16 +29,20 @@ const CertModal = ({ cert, onClose }: { cert: Certification; onClose: () => void
 
   // Portal to <body>: ancestors animated with CSS transforms would otherwise
   // become the containing block for position:fixed and misplace the overlay.
+  // No backdrop-filter here: blur on a fixed overlay above a cross-origin
+  // iframe triggers a Chrome compositing bug where the browser hit-tests the
+  // modal at a stale position — clicks on the close button silently fall
+  // through to the iframe.
   return createPortal(
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-8 bg-ink-950/80 backdrop-blur-sm"
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-8 bg-ink-950/90"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-label={`Certificate: ${cert.title}`}
     >
       <div
-        className="glass rounded-xl w-full max-w-3xl overflow-hidden shadow-2xl"
+        className="bg-ink-900 border border-white/10 rounded-xl w-full max-w-3xl overflow-hidden shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between gap-3 px-5 py-3.5 border-b border-white/10">
