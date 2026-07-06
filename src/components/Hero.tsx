@@ -1,81 +1,136 @@
-import React from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowDown, Github, Linkedin, Mail } from 'lucide-react';
+import ParticleField from './ParticleField';
+import Terminal from './Terminal';
+import { profile } from '../data/portfolio';
+
+const ROLES = [
+  'Software Developer',
+  'AI Student',
+  'Automation Builder',
+  'Full-Stack Learner',
+];
+
+/** Typewriter cycling through roles. */
+function useTypewriter(words: string[]) {
+  const [text, setText] = useState('');
+  const [wordIdx, setWordIdx] = useState(0);
+  const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setText(words[0]);
+      return;
+    }
+    const word = words[wordIdx % words.length];
+    const done = !deleting && text === word;
+    const empty = deleting && text === '';
+
+    const delay = done ? 1800 : deleting ? 40 : 75;
+    const t = setTimeout(() => {
+      if (done) setDeleting(true);
+      else if (empty) {
+        setDeleting(false);
+        setWordIdx((i) => i + 1);
+      } else {
+        setText(word.slice(0, text.length + (deleting ? -1 : 1)));
+      }
+    }, delay);
+    return () => clearTimeout(t);
+  }, [text, deleting, wordIdx, words]);
+
+  return text;
+}
 
 const Hero = () => {
-  const scrollToAbout = () => {
-    const aboutSection = document.getElementById('about');
-    if (aboutSection) {
-      aboutSection.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
+  const typed = useTypewriter(ROLES);
 
   return (
-    <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Animated Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700">
-        <div className="absolute inset-0 bg-[url('https://images.pexels.com/photos/1089438/pexels-photo-1089438.jpeg')] bg-cover bg-center opacity-10"></div>
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-900/50 to-blue-900/80"></div>
+    <section id="hero" className="relative min-h-screen flex items-center overflow-hidden">
+      {/* Background layers */}
+      <div className="absolute inset-0 bg-ink-950" aria-hidden="true">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(34,211,238,0.08),transparent_55%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(167,139,250,0.07),transparent_55%)]" />
+        <div
+          className="absolute inset-0 opacity-[0.35]"
+          style={{
+            backgroundImage:
+              'linear-gradient(rgba(148,163,184,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.05) 1px, transparent 1px)',
+            backgroundSize: '56px 56px',
+          }}
+        />
       </div>
+      <ParticleField />
 
-      {/* Floating Elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-orange-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
-      </div>
-
-      <div className="relative z-10 text-center text-white max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="space-y-8">
-          <div className="space-y-4">
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight">
-              <span className="block">Hello, I'm</span>
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-orange-400">
-                Roshit Lamichhane
-              </span>
-            </h1>
-            <p className="text-xl sm:text-2xl text-blue-100 font-light max-w-2xl mx-auto">
-              Passionate Web Development Enthusiast & AI Student
-            </p>
-          </div>
-
-          <p className="text-lg text-blue-200 max-w-3xl mx-auto leading-relaxed">
-            Continuously expanding my skills in HTML, CSS, JavaScript, and responsive web design. 
-            Currently exploring the fascinating world of AI and Machine Learning while building innovative projects.
+      <div className="section-shell relative z-10 grid lg:grid-cols-[1.15fr,1fr] gap-12 items-center py-28 w-full">
+        <div className="animate-fade-up">
+          <p className="font-mono text-accent text-sm sm:text-base mb-4">Hi, my name is</p>
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-white tracking-tight">
+            Roshit Lamichhane<span className="text-accent">.</span>
+          </h1>
+          <p className="mt-4 font-mono text-xl sm:text-2xl text-slate-300 h-8">
+            <span aria-live="polite">{typed}</span>
+            <span className="text-accent animate-blink" aria-hidden="true">
+              ▍
+            </span>
           </p>
+          <p className="mt-6 max-w-xl text-lg text-slate-400 leading-relaxed">{profile.tagline}</p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-4">
-            <button 
-              onClick={scrollToAbout}
-              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-4 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+          <div className="mt-10 flex flex-wrap items-center gap-4">
+            <a
+              href="#projects"
+              className="px-7 py-3.5 rounded-lg bg-accent text-ink-950 font-semibold hover:bg-accent-soft transition-colors shadow-lg shadow-accent/20"
             >
-              Explore My Work
-            </button>
-            
-            <div className="flex space-x-4">
+              View my work
+            </a>
+            <a
+              href="#contact"
+              className="px-7 py-3.5 rounded-lg border border-accent/40 text-accent font-semibold hover:bg-accent/10 transition-colors"
+            >
+              Get in touch
+            </a>
+            <div className="flex items-center gap-2 sm:ml-2">
               <a
-                href="https://www.linkedin.com/in/roshit-lamichhane-a5382053"
+                href={profile.github}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-3 rounded-full bg-white/10 hover:bg-white/20 transition-all duration-300 transform hover:scale-110 backdrop-blur-sm"
+                aria-label="GitHub profile"
+                className="p-3 rounded-lg text-slate-400 hover:text-accent hover:bg-white/5 transition-colors"
               >
-                <Linkedin size={24} />
+                <Github size={22} />
               </a>
               <a
-                href="mailto:roshitlamichhane12@gmail.com"
-                className="p-3 rounded-full bg-white/10 hover:bg-white/20 transition-all duration-300 transform hover:scale-110 backdrop-blur-sm"
+                href={profile.linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="LinkedIn profile"
+                className="p-3 rounded-lg text-slate-400 hover:text-accent hover:bg-white/5 transition-colors"
               >
-                <Mail size={24} />
+                <Linkedin size={22} />
+              </a>
+              <a
+                href={`mailto:${profile.email}`}
+                aria-label="Send email"
+                className="p-3 rounded-lg text-slate-400 hover:text-accent hover:bg-white/5 transition-colors"
+              >
+                <Mail size={22} />
               </a>
             </div>
           </div>
         </div>
 
-        <button
-          onClick={scrollToAbout}
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce"
-        >
-          <ArrowDown size={32} className="text-blue-300" />
-        </button>
+        <div className="hidden lg:block animate-fade-up" style={{ animationDelay: '0.2s' }}>
+          <Terminal />
+        </div>
       </div>
+
+      <a
+        href="#about"
+        aria-label="Scroll to about section"
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 text-slate-500 hover:text-accent transition-colors animate-bounce"
+      >
+        <ArrowDown size={26} />
+      </a>
     </section>
   );
 };

@@ -5,37 +5,41 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
-      },
-      animation: {
-        'pulse': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'bounce': 'bounce 2s infinite',
+        mono: ['"JetBrains Mono"', 'monospace'],
       },
       colors: {
-        blue: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
+        ink: {
+          950: '#020617',
+          900: '#0b1120',
+          850: '#101a30',
+          800: '#16213b',
         },
-        orange: {
-          50: '#fff7ed',
-          100: '#ffedd5',
-          200: '#fed7aa',
-          300: '#fdba74',
-          400: '#fb923c',
-          500: '#f97316',
-          600: '#ea580c',
-          700: '#c2410c',
-          800: '#9a3412',
-          900: '#7c2d12',
-        }
-      }
+        accent: {
+          DEFAULT: '#22d3ee',
+          soft: '#67e8f9',
+          violet: '#a78bfa',
+        },
+      },
+      animation: {
+        'fade-up': 'fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both',
+        blink: 'blink 1.1s step-end infinite',
+        'spin-slow': 'spin 14s linear infinite',
+        float: 'float 7s ease-in-out infinite',
+      },
+      keyframes: {
+        fadeUp: {
+          from: { opacity: '0', transform: 'translateY(28px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
+        blink: {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0' },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-14px)' },
+        },
+      },
     },
   },
   plugins: [],

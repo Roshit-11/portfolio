@@ -1,84 +1,79 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Menu, X } from 'lucide-react';
+
+const NAV = [
+  { id: 'about', label: 'About' },
+  { id: 'experience', label: 'Experience' },
+  { id: 'projects', label: 'Projects' },
+  { id: 'skills', label: 'Skills' },
+  { id: 'certifications', label: 'Certifications' },
+  { id: 'contact', label: 'Contact' },
+];
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-    
-    window.addEventListener('scroll', handleScroll);
+    const handleScroll = () => setIsScrolled(window.scrollY > 40);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-      setIsMenuOpen(false);
-    }
-  };
-
   return (
-    <header 
+    <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled 
-          ? 'bg-white/95 backdrop-blur-md shadow-lg' 
-          : 'bg-transparent'
+        isScrolled ? 'bg-ink-950/85 backdrop-blur-md border-b border-white/5' : 'bg-transparent'
       }`}
     >
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav className="section-shell" aria-label="Primary">
         <div className="flex justify-between items-center h-16">
-          <button
-            onClick={() => scrollToSection('hero')}
-            className={`text-xl font-bold transition-colors duration-300 ${
-              isScrolled ? 'text-gray-900' : 'text-white'
-            }`}
-          >
-            Roshit Lamichhane
-          </button>
+          <a href="#hero" className="font-mono font-semibold text-white text-lg" aria-label="Back to top">
+            <span className="text-accent">~/</span>roshit
+            <span className="text-accent animate-blink" aria-hidden="true">
+              _
+            </span>
+          </a>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex space-x-8">
-            {['About', 'Projects', 'Skills', 'Contact'].map((item) => (
-              <button
-                key={item}
-                onClick={() => scrollToSection(item.toLowerCase())}
-                className={`font-medium transition-colors duration-300 hover:text-blue-600 ${
-                  isScrolled ? 'text-gray-700' : 'text-white'
-                }`}
+          {/* Desktop nav */}
+          <div className="hidden md:flex items-center gap-1">
+            {NAV.map((item, i) => (
+              <a
+                key={item.id}
+                href={`#${item.id}`}
+                className="px-3 py-2 text-sm font-medium text-slate-300 hover:text-accent transition-colors"
               >
-                {item}
-              </button>
+                <span className="font-mono text-accent/70 text-xs mr-1">0{i + 1}.</span>
+                {item.label}
+              </a>
             ))}
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile menu button */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className={`md:hidden transition-colors duration-300 ${
-              isScrolled ? 'text-gray-900' : 'text-white'
-            }`}
+            className="md:hidden text-slate-200 p-2"
+            aria-expanded={isMenuOpen}
+            aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
           >
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
 
-        {/* Mobile Navigation */}
+        {/* Mobile nav */}
         {isMenuOpen && (
-          <div className="md:hidden absolute top-16 left-0 right-0 bg-white shadow-lg border-t">
-            <div className="px-4 py-2 space-y-1">
-              {['About', 'Projects', 'Skills', 'Contact'].map((item) => (
-                <button
-                  key={item}
-                  onClick={() => scrollToSection(item.toLowerCase())}
-                  className="block w-full text-left px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md transition-colors duration-200"
+          <div className="md:hidden absolute top-16 left-0 right-0 bg-ink-900/95 backdrop-blur-md border-b border-white/10 shadow-xl">
+            <div className="px-4 py-3 space-y-1">
+              {NAV.map((item, i) => (
+                <a
+                  key={item.id}
+                  href={`#${item.id}`}
+                  onClick={() => setIsMenuOpen(false)}
+                  className="block px-3 py-2.5 text-slate-200 hover:text-accent hover:bg-white/5 rounded-md transition-colors"
                 >
-                  {item}
-                </button>
+                  <span className="font-mono text-accent/70 text-xs mr-2">0{i + 1}.</span>
+                  {item.label}
+                </a>
               ))}
             </div>
           </div>

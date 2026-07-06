@@ -1,129 +1,142 @@
-import React from 'react';
-import { ExternalLink, Github, ShoppingCart, Dumbbell, Cpu } from 'lucide-react';
+import { useState } from 'react';
+import { ExternalLink, Github, Sparkles } from 'lucide-react';
+import Section from './Section';
+import { projects, Project } from '../data/portfolio';
+import { useInView } from '../hooks/useInView';
 
-const Projects = () => {
-  const projects = [
-    {
-      id: 1,
-      title: "Wristy - E-commerce Watch Website",
-      description: "Designed and developed a luxury-themed e-commerce platform for watch reselling. Enhanced user experience with elegant UI, seamless navigation, and advanced web technologies ensuring scalability and optimal performance.",
-      icon: <ShoppingCart className="w-8 h-8 text-blue-600" />,
-      technologies: ["HTML", "CSS", "JavaScript", "Responsive Design"],
-      category: "Web Development",
-      type: "Group Coursework",
-      institution: "Islington College",
-      color: "from-blue-500 to-blue-600"
-    },
-    {
-      id: 2,
-      title: "Gym Management System",
-      description: "Comprehensive gym management system using Object-Oriented Programming principles in Java. Features different membership plans, attendance tracking, loyalty points, and a graphical user interface for seamless user experience.",
-      icon: <Dumbbell className="w-8 h-8 text-green-600" />,
-      technologies: ["Java", "OOP", "GUI", "ArrayList"],
-      category: "Software Development",
-      type: "Programming Coursework",
-      institution: "Islington College",
-      color: "from-green-500 to-green-600"
-    },
-    {
-      id: 3,
-      title: "Smart Farming IoT System",
-      description: "IoT-based smart farming system that automates irrigation, monitors environmental conditions, and provides real-time alerts. Integrates machine learning for disease detection and uses ESP32 with Blynk for optimal resource management.",
-      icon: <Cpu className="w-8 h-8 text-orange-600" />,
-      technologies: ["ESP32", "Blynk", "Machine Learning", "IoT", "Sensors"],
-      category: "IoT & Machine Learning",
-      type: "Current Project",
-      institution: "Islington College",
-      color: "from-orange-500 to-orange-600"
-    }
-  ];
+const CATEGORIES = ['All', 'AI & Automation', 'Web', 'Java & OOP', 'Data & IoT'] as const;
+
+const ProjectCard = ({ project }: { project: Project }) => {
+  const ref = useInView();
 
   return (
-    <section id="projects" className="py-24 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
-            Featured Projects
-          </h2>
-          <div className="w-24 h-1 bg-gradient-to-r from-blue-600 to-orange-600 mx-auto mb-8"></div>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Explore my journey through various projects that showcase my passion for web development, 
-            software engineering, and emerging technologies like IoT and machine learning.
-          </p>
-        </div>
-
-        <div className="grid lg:grid-cols-3 gap-8">
-          {projects.map((project, index) => (
-            <div
-              key={project.id}
-              className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-4 overflow-hidden"
-            >
-              <div className={`h-2 bg-gradient-to-r ${project.color}`}></div>
-              
-              <div className="p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="transform group-hover:scale-110 transition-transform duration-300">
-                    {project.icon}
-                  </div>
-                  <span className="text-sm font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                    {project.type}
-                  </span>
-                </div>
-
-                <h3 className="text-2xl font-bold text-gray-900 mb-4 group-hover:text-blue-600 transition-colors duration-300">
-                  {project.title}
-                </h3>
-
-                <p className="text-gray-600 mb-6 leading-relaxed">
-                  {project.description}
-                </p>
-
-                <div className="space-y-4 mb-6">
-                  <div>
-                    <span className="text-sm font-semibold text-gray-700">Category:</span>
-                    <span className="text-sm text-gray-600 ml-2">{project.category}</span>
-                  </div>
-                  <div>
-                    <span className="text-sm font-semibold text-gray-700">Institution:</span>
-                    <span className="text-sm text-gray-600 ml-2">{project.institution}</span>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {project.technologies.map((tech, techIndex) => (
-                    <span
-                      key={techIndex}
-                      className="px-3 py-1 text-sm font-medium bg-blue-50 text-blue-700 rounded-full border border-blue-200"
-                    >
-                      {tech}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="pt-4 border-t border-gray-100">
-                  <div className="flex items-center text-blue-600 font-medium group-hover:text-blue-700 transition-colors duration-300">
-                    <span className="mr-2">Learn More</span>
-                    <ExternalLink size={16} className="transform group-hover:translate-x-1 transition-transform duration-300" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="text-center mt-16">
-          <div className="inline-flex items-center justify-center p-8 bg-gradient-to-r from-blue-50 to-orange-50 rounded-2xl">
-            <div className="text-center">
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">More Projects Coming Soon</h3>
-              <p className="text-gray-600 max-w-md">
-                I'm constantly working on new projects and exploring emerging technologies. 
-                Stay tuned for more exciting developments!
-              </p>
-            </div>
-          </div>
+    <article
+      ref={ref}
+      className={`reveal group glass rounded-xl p-6 sm:p-7 flex flex-col hover:border-accent/30 hover:-translate-y-1.5 transition-all duration-300 ${
+        project.featured ? 'ring-1 ring-accent/20' : ''
+      }`}
+    >
+      <div className="flex items-start justify-between gap-3 mb-4">
+        <h3 className="text-xl font-bold text-white group-hover:text-accent-soft transition-colors">
+          {project.title}
+        </h3>
+        <div className="flex items-center gap-1 shrink-0">
+          {project.featured && (
+            <span className="flex items-center gap-1 text-xs font-mono text-accent bg-accent/10 border border-accent/25 px-2 py-1 rounded-md">
+              <Sparkles size={12} aria-hidden="true" /> featured
+            </span>
+          )}
         </div>
       </div>
-    </section>
+
+      <div className="space-y-3 text-sm leading-relaxed flex-1">
+        <p className="text-slate-400">
+          <span className="font-mono text-xs text-accent-violet uppercase tracking-wider block mb-1">
+            Problem
+          </span>
+          {project.problem}
+        </p>
+        <p className="text-slate-400">
+          <span className="font-mono text-xs text-accent uppercase tracking-wider block mb-1">
+            Solution
+          </span>
+          {project.solution}
+        </p>
+        <ul className="text-slate-500 space-y-1.5 pt-1">
+          {project.features.map((f, i) => (
+            <li key={i} className="flex gap-2">
+              <span className="text-accent" aria-hidden="true">
+                ▸
+              </span>
+              <span>{f}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="flex flex-wrap gap-2 mt-5">
+        {project.tech.map((t) => (
+          <span key={t} className="chip">
+            {t}
+          </span>
+        ))}
+      </div>
+
+      <div className="flex items-center gap-4 mt-5 pt-4 border-t border-white/5">
+        {project.github && (
+          <a
+            href={project.github}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-sm text-slate-300 hover:text-accent transition-colors"
+          >
+            <Github size={16} aria-hidden="true" /> Code
+          </a>
+        )}
+        {project.live && (
+          <a
+            href={project.live}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-sm text-slate-300 hover:text-accent transition-colors"
+          >
+            <ExternalLink size={16} aria-hidden="true" /> Live demo
+          </a>
+        )}
+        {!project.github && !project.live && project.note && (
+          <span className="text-xs text-slate-500 font-mono">{project.note}</span>
+        )}
+      </div>
+    </article>
+  );
+};
+
+const Projects = () => {
+  const [filter, setFilter] = useState<(typeof CATEGORIES)[number]>('All');
+  const filtered = filter === 'All' ? projects : projects.filter((p) => p.category === filter);
+
+  return (
+    <Section
+      id="projects"
+      kicker="03. projects"
+      title="Things I've Built"
+      lead="From AI pipelines running 24/7 to database-backed desktop systems — each one taught me something different."
+    >
+      <div className="flex flex-wrap gap-2 mb-10" role="group" aria-label="Filter projects by category">
+        {CATEGORIES.map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setFilter(cat)}
+            aria-pressed={filter === cat}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${
+              filter === cat
+                ? 'bg-accent/15 text-accent border-accent/40'
+                : 'text-slate-400 border-white/10 hover:text-slate-200 hover:border-white/25'
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-6">
+        {filtered.map((p) => (
+          <ProjectCard key={p.title} project={p} />
+        ))}
+      </div>
+
+      <p className="mt-10 text-center text-sm text-slate-500 font-mono">
+        More on{' '}
+        <a
+          href="https://github.com/Roshit-11"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-accent hover:underline"
+        >
+          github.com/Roshit-11
+        </a>
+      </p>
+    </Section>
   );
 };
 

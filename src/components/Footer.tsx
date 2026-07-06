@@ -1,38 +1,46 @@
-import React from 'react';
-import { Heart, Code, Coffee } from 'lucide-react';
+import { Github, Linkedin, Mail } from 'lucide-react';
+import { profile } from '../data/portfolio';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-gray-900 text-white py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center">
-          <div className="mb-8">
-            <h3 className="text-2xl font-bold mb-4">Roshit Lamichhane</h3>
-            <p className="text-gray-400 max-w-md mx-auto">
-              Passionate Web Developer & AI Student from Kathmandu, Nepal
-            </p>
-          </div>
-
-          <div className="flex items-center justify-center space-x-2 text-gray-400 mb-6">
-            <span>Made with</span>
-            <Heart className="w-4 h-4 text-red-500 animate-pulse" />
-            <span>and</span>
-            <Code className="w-4 h-4 text-blue-500" />
-            <span>fueled by</span>
-            <Coffee className="w-4 h-4 text-yellow-600" />
-          </div>
-
-          <div className="border-t border-gray-800 pt-8">
-            <p className="text-gray-500">
-              © {currentYear} Roshit Lamichhane. All rights reserved.
-            </p>
-            <p className="text-sm text-gray-600 mt-2">
-              Built with React, TypeScript, and Tailwind CSS
-            </p>
-          </div>
+    <footer className="border-t border-white/5 py-10">
+      <div className="section-shell text-center space-y-5">
+        <div className="flex items-center justify-center gap-3">
+          <a
+            href={profile.github}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="GitHub profile"
+            className="p-2.5 rounded-lg text-slate-500 hover:text-accent hover:bg-white/5 transition-colors"
+          >
+            <Github size={20} />
+          </a>
+          <a
+            href={profile.linkedin}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="LinkedIn profile"
+            className="p-2.5 rounded-lg text-slate-500 hover:text-accent hover:bg-white/5 transition-colors"
+          >
+            <Linkedin size={20} />
+          </a>
+          <a
+            href={`mailto:${profile.email}`}
+            aria-label="Send email"
+            className="p-2.5 rounded-lg text-slate-500 hover:text-accent hover:bg-white/5 transition-colors"
+          >
+            <Mail size={20} />
+          </a>
         </div>
+
+        <p className="font-mono text-xs text-slate-600">
+          Designed & built by {profile.name} · © {currentYear}
+        </p>
+        <p className="font-mono text-xs text-slate-700">
+          React · TypeScript · Tailwind — psst, try the terminal up top
+        </p>
       </div>
     </footer>
   );

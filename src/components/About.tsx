@@ -1,104 +1,115 @@
-import React from 'react';
-import { Code, Brain, Smartphone, Users } from 'lucide-react';
+import { Bot, Code2, Database, GraduationCap } from 'lucide-react';
+import Section from './Section';
+import { education, profile } from '../data/portfolio';
+import { useInView } from '../hooks/useInView';
+
+const highlights = [
+  {
+    icon: <Bot className="w-7 h-7 text-accent" />,
+    title: 'AI & Automation',
+    description:
+      'Building AI-powered pipelines — from news summarization with LLMs to lead-research automation used in production at work.',
+  },
+  {
+    icon: <Code2 className="w-7 h-7 text-accent-violet" />,
+    title: 'Full-Stack Development',
+    description:
+      'Web apps with Next.js, Tailwind, and Node.js on the front; Java and Python systems with real databases behind them.',
+  },
+  {
+    icon: <Database className="w-7 h-7 text-emerald-400" />,
+    title: 'Data & Databases',
+    description:
+      'Comfortable from ERD and UNF→3NF normalization to Oracle/MySQL, JDBC, Power BI dashboards, and NumPy.',
+  },
+  {
+    icon: <GraduationCap className="w-7 h-7 text-amber-400" />,
+    title: 'Continuous Learning',
+    description:
+      'Four AWS Academy badges and a stack of LinkedIn Learning certs — plus an AI degree in progress.',
+  },
+];
 
 const About = () => {
-  const highlights = [
-    {
-      icon: <Code className="w-8 h-8 text-blue-600" />,
-      title: "Web Development",
-      description: "Passionate about creating elegant, responsive web applications using modern technologies"
-    },
-    {
-      icon: <Brain className="w-8 h-8 text-orange-600" />,
-      title: "AI & Machine Learning",
-      description: "Currently pursuing B.Sc. Hons in Computing with AI, exploring the future of technology"
-    },
-    {
-      icon: <Smartphone className="w-8 h-8 text-green-600" />,
-      title: "IoT Projects",
-      description: "Developing smart farming systems with ESP32 and integrating machine learning"
-    },
-    {
-      icon: <Users className="w-8 h-8 text-purple-600" />,
-      title: "Leadership",
-      description: "Led programs and managed social media for Bhuryang Group, demonstrating leadership skills"
-    }
-  ];
+  const gridRef = useInView();
+  const eduRef = useInView();
 
   return (
-    <section id="about" className="py-24 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
-            About Me
-          </h2>
-          <div className="w-24 h-1 bg-gradient-to-r from-blue-600 to-orange-600 mx-auto mb-8"></div>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            A passionate and innovative web development enthusiast from Kathmandu, Nepal. 
-            I'm continuously expanding my skills and exploring the intersection of web development and artificial intelligence.
+    <Section
+      id="about"
+      kicker="01. about"
+      title="About Me"
+      lead="Student by day, automation builder at work — I like problems that start messy and end as a running system."
+    >
+      <div className="grid lg:grid-cols-[1.2fr,1fr] gap-12 items-start">
+        <div className="space-y-5 text-slate-400 leading-relaxed">
+          <p>
+            I'm a Computing with AI undergraduate at Islington College in Kathmandu, and since May
+            2026 I've been working with the marketing team at{' '}
+            <span className="text-slate-200">Allied Title &amp; Escrow</span>, where I build the
+            data side of outbound campaigns — scraping, validating, and enriching real estate agent
+            leads, then running sequences through HubSpot.
           </p>
-        </div>
+          <p>
+            Outside work, I ship projects that scratch my own itch: a Nepali news aggregator that
+            summarizes articles with an LLM every 10 minutes, a gamified platform for learning
+            Tailwind CSS, and a from-scratch CRM to understand what HubSpot does under the hood.
+          </p>
+          <p>
+            I care about systems that keep running after I stop watching them — automated,
+            monitored, and boring in the best way.
+          </p>
 
-        <div className="grid md:grid-cols-2 gap-16 items-center mb-16">
-          <div className="space-y-6">
-            <h3 className="text-3xl font-bold text-gray-900">My Journey</h3>
-            <div className="space-y-4 text-gray-600 leading-relaxed">
-              <p>
-                Currently pursuing my Bachelor's degree in Computing with AI at Islington College, 
-                I'm fascinated by the endless possibilities that technology offers. My academic journey 
-                has been marked by consistent excellence, maintaining a strong GPA while actively 
-                engaging in various projects and leadership roles.
-              </p>
-              <p>
-                From developing e-commerce platforms to creating IoT-based smart farming systems, 
-                I enjoy tackling complex problems and turning ideas into reality. My experience as 
-                a social media handler has also honed my communication and digital marketing skills.
-              </p>
-              <p>
-                I believe in continuous learning and have earned multiple AWS certifications, 
-                demonstrating my commitment to staying current with industry trends and technologies.
-              </p>
-            </div>
-          </div>
-
-          <div className="relative">
-            <div className="relative z-10 bg-gradient-to-br from-blue-600 to-orange-600 rounded-2xl p-8 text-white">
-              <h4 className="text-2xl font-bold mb-6">Quick Facts</h4>
-              <div className="space-y-4">
-                <div>
-                  <span className="font-semibold">Location:</span> New Baneswor, Kathmandu
-                </div>
-                <div>
-                  <span className="font-semibold">Education:</span> B.Sc. Hons in Computing with AI
-                </div>
-                <div>
-                  <span className="font-semibold">Interests:</span> Web Dev, AI/ML, IoT
-                </div>
-                <div>
-                  <span className="font-semibold">Languages:</span> Java, JavaScript, Python
-                </div>
-              </div>
-            </div>
-            <div className="absolute -top-4 -right-4 w-full h-full bg-gradient-to-br from-blue-200 to-orange-200 rounded-2xl -z-10"></div>
+          {/* Code-styled quick facts */}
+          <div className="glass rounded-xl p-5 font-mono text-sm !mt-8">
+            <p className="text-slate-500">
+              <span className="text-accent-violet">const</span>{' '}
+              <span className="text-accent-soft">roshit</span> = {'{'}
+            </p>
+            <p className="pl-5 text-slate-300">
+              location: <span className="text-emerald-400">'{profile.location}'</span>,
+            </p>
+            <p className="pl-5 text-slate-300">
+              degree: <span className="text-emerald-400">'B.Sc. (Hons) Computing with AI'</span>,
+            </p>
+            <p className="pl-5 text-slate-300">
+              currentFocus: <span className="text-emerald-400">'AI · automation · data'</span>,
+            </p>
+            <p className="pl-5 text-slate-300">
+              openTo: <span className="text-emerald-400">'internships & collaborations'</span>,
+            </p>
+            <p className="text-slate-500">{'};'}</p>
           </div>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {highlights.map((item, index) => (
-            <div
-              key={index}
-              className="group p-6 bg-gray-50 rounded-xl hover:bg-white hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2"
-            >
-              <div className="mb-4 transform group-hover:scale-110 transition-transform duration-300">
-                {item.icon}
+        <div ref={eduRef} className="reveal space-y-4">
+          <h3 className="font-mono text-sm text-slate-500 uppercase tracking-widest">Education</h3>
+          {education.map((e) => (
+            <div key={e.school} className="glass rounded-xl p-5">
+              <div className="flex justify-between items-start gap-3 flex-wrap">
+                <h4 className="font-semibold text-white">{e.school}</h4>
+                <span className="font-mono text-xs text-accent">{e.period}</span>
               </div>
-              <h4 className="text-xl font-bold text-gray-900 mb-3">{item.title}</h4>
-              <p className="text-gray-600 leading-relaxed">{item.description}</p>
+              <p className="text-slate-300 text-sm mt-1">{e.degree}</p>
+              {e.detail && <p className="text-slate-500 text-sm mt-2 leading-relaxed">{e.detail}</p>}
             </div>
           ))}
         </div>
       </div>
-    </section>
+
+      <div ref={gridRef} className="reveal grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-14">
+        {highlights.map((item) => (
+          <div
+            key={item.title}
+            className="group glass rounded-xl p-6 hover:border-accent/30 hover:-translate-y-1.5 transition-all duration-300"
+          >
+            <div className="mb-4">{item.icon}</div>
+            <h4 className="text-lg font-bold text-white mb-2">{item.title}</h4>
+            <p className="text-sm text-slate-400 leading-relaxed">{item.description}</p>
+          </div>
+        ))}
+      </div>
+    </Section>
   );
 };
 
