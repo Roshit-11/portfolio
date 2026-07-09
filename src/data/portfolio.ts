@@ -9,6 +9,7 @@ export const profile = {
   github: 'https://github.com/Roshit-11',
   linkedin: 'https://www.linkedin.com/in/roshit-lamichhane/',
   siteUrl: 'https://roshitlamichhane.netlify.app/',
+  resumeDriveId: '1-ySDHqe9ar0Kayn1a6X678loeCWRvAlo',
 };
 
 export interface Experience {

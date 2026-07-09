@@ -1,8 +1,92 @@
-import { useEffect, useState } from 'react';
-import { ArrowDown, Github, Linkedin, Mail } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { ArrowDown, Download, ExternalLink, FileText, Github, Linkedin, Mail, X } from 'lucide-react';
 import ParticleField from './ParticleField';
 import Terminal from './Terminal';
 import { profile } from '../data/portfolio';
+
+const resumeViewUrl = `https://drive.google.com/file/d/${profile.resumeDriveId}/view`;
+const resumePreviewUrl = `https://drive.google.com/file/d/${profile.resumeDriveId}/preview`;
+const resumeDownloadUrl = `https://drive.google.com/uc?export=download&id=${profile.resumeDriveId}`;
+
+/**
+ * Lightbox that embeds the resume PDF via Google Drive's /preview endpoint
+ * (the only Drive URL that allows iframe embedding) — same pattern as the
+ * certification modal.
+ */
+const ResumeModal = ({ onClose }: { onClose: () => void }) => {
+  const closeRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    closeRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+    document.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+    };
+  }, [onClose]);
+
+  // Portal to <body>: ancestors animated with CSS transforms would otherwise
+  // become the containing block for position:fixed and misplace the overlay.
+  // No backdrop-filter here: blur on a fixed overlay above a cross-origin
+  // iframe triggers a Chrome compositing bug where the browser hit-tests the
+  // modal at a stale position — clicks on the close button silently fall
+  // through to the iframe.
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-8 bg-ink-950/90"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Resume preview"
+    >
+      <div
+        className="bg-ink-900 border border-white/10 rounded-xl w-full max-w-3xl overflow-hidden shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between gap-3 px-5 py-3.5 border-b border-white/10">
+          <div className="min-w-0">
+            <h3 className="font-semibold text-white truncate">Resume</h3>
+            <p className="text-xs text-slate-500">{profile.name}</p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <a
+              href={resumeDownloadUrl}
+              className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-accent transition-colors px-2 py-1.5"
+            >
+              <Download size={14} aria-hidden="true" /> Download
+            </a>
+            <a
+              href={resumeViewUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-accent transition-colors px-2 py-1.5"
+            >
+              <ExternalLink size={14} aria-hidden="true" /> Open in Drive
+            </a>
+            <button
+              ref={closeRef}
+              onClick={onClose}
+              aria-label="Close resume preview"
+              className="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+            >
+              <X size={18} />
+            </button>
+          </div>
+        </div>
+        <iframe
+          src={resumePreviewUrl}
+          title="Resume preview"
+          className="w-full h-[65vh] bg-ink-900"
+          allow="autoplay"
+        />
+      </div>
+    </div>,
+    document.body
+  );
+};
 
 const ROLES = [
   'Software Developer',
@@ -44,6 +128,7 @@ function useTypewriter(words: string[]) {
 
 const Hero = () => {
   const typed = useTypewriter(ROLES);
+  const [resumeOpen, setResumeOpen] = useState(false);
 
   return (
     <section id="hero" className="relative min-h-screen flex items-center overflow-hidden">
@@ -89,6 +174,12 @@ const Hero = () => {
             >
               Get in touch
             </a>
+            <button
+              onClick={() => setResumeOpen(true)}
+              className="flex items-center gap-2 px-7 py-3.5 rounded-lg border border-accent/40 text-accent font-semibold hover:bg-accent/10 transition-colors"
+            >
+              <FileText size={18} aria-hidden="true" /> View Resume
+            </button>
             <div className="flex items-center gap-2 sm:ml-2">
               <a
                 href={profile.github}
@@ -131,6 +222,8 @@ const Hero = () => {
       >
         <ArrowDown size={26} />
       </a>
+
+      {resumeOpen && <ResumeModal onClose={() => setResumeOpen(false)} />}
     </section>
   );
 };
