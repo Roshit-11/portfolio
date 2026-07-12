@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Roshit Quest — Play the Portfolio</title>
+    <meta name="description" content="A tiny pixel RPG where you explore Roshit Lamichhane's projects, skills, and experience. Walk around. Press E. Get him hired." />
+    <meta name="theme-color" content="#0b1120" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b1120'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle'%3E🎮%3C/text%3E%3C/svg%3E" />
+    <meta property="og:title" content="Roshit Quest — Play the Portfolio" />
+    <meta property="og:description" content="A pixel RPG portfolio. Explore projects, collect skills, complete the Get Hired quest." />
+    <style>
+      html, body { margin: 0; padding: 0; background: #0b1120; height: 100%; overflow: hidden;
+                   font-family: 'Courier New', monospace; -webkit-user-select: none; user-select: none; }
+      #game-root { position: fixed; inset: 0; }
+      canvas { image-rendering: pixelated; image-rendering: crisp-edges; display: block; }
+    </style>
+  </head>
+  <body>
+    <div id="game-root"></div>
+    <script type="module" src="/src/quest/main.ts"></script>
+  </body>
+</html>
