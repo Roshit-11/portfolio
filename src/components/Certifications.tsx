@@ -92,6 +92,7 @@ const Certifications = () => {
           const accent = ACCENTS[i % ACCENTS.length];
           const inner = (
             <>
+              <div className="scanner-glare-effect" />
               <div className="flex items-start justify-between gap-3">
                 <span
                   className="grid place-items-center w-11 h-11 rounded-xl shrink-0"

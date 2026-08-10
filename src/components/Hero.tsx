@@ -1,14 +1,15 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ArrowDown, Binary, Braces, Code2, Command, Cpu, Database, GitBranch, Hash, Laptop, Terminal } from 'lucide-react';
 import HeroCharacter from './HeroCharacter';
-import { useScrollProgress } from '../hooks/useScrollProgress';
 import { useMediaQuery } from '../hooks/useMediaQuery';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-const clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+gsap.registerPlugin(ScrollTrigger);
 
 /* Faint topographic contour background (Lando-style) */
 const Contours = () => (
-  <svg className="absolute inset-0 w-full h-full text-ink" preserveAspectRatio="xMidYMid slice" viewBox="0 0 1440 900" aria-hidden="true">
+  <svg className="absolute inset-0 w-full h-full text-[#1B1B18]" preserveAspectRatio="xMidYMid slice" viewBox="0 0 1440 900" aria-hidden="true">
     <g fill="none" stroke="currentColor" strokeOpacity="0.06" strokeWidth="1.2">
       <path d="M-50 180 C 300 60, 520 300, 780 200 S 1250 60, 1500 220" />
       <path d="M-50 300 C 320 200, 540 420, 800 320 S 1260 200, 1500 340" />
@@ -58,7 +59,7 @@ const Orbits = ({ px, py }: { px: number; py: number }) => (
 );
 
 const Badge = () => (
-  <div className="rounded-2xl border border-ink/15 bg-surface/70 backdrop-blur-sm px-5 py-4 w-[230px] shadow-sm">
+  <div className="rounded-2xl border border-ink/15 bg-[#FAF9F3]/80 backdrop-blur-sm px-5 py-4 w-[230px] shadow-sm">
     <p className="font-mono text-[11px] tracking-[0.18em] text-muted uppercase">Currently building</p>
     <div className="flex items-center gap-2 mt-2">
       <Laptop className="w-5 h-5 text-accent shrink-0" aria-hidden="true" />
@@ -70,10 +71,18 @@ const Badge = () => (
 
 const Hero = () => {
   const isDesktop = useMediaQuery('(min-width: 1024px)');
-  const { ref, progress: p } = useScrollProgress<HTMLElement>();
+  const sectionRef = useRef<HTMLDivElement>(null);
   const stickyRef = useRef<HTMLDivElement>(null);
+  const orbitsRef = useRef<HTMLDivElement>(null);
+  const characterRef = useRef<HTMLDivElement>(null);
+  
+  const textLeftRef = useRef<HTMLDivElement>(null);
+  const textRightRef = useRef<HTMLDivElement>(null);
+  const badgeRef = useRef<HTMLDivElement>(null);
+  const scrollHintRef = useRef<HTMLDivElement>(null);
+  const signatureRef = useRef<HTMLDivElement>(null);
+
   const [par, setPar] = useState({ px: 0, py: 0 });
-  const [, setHovered] = useState(false);
 
   const onMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const el = stickyRef.current;
@@ -82,6 +91,95 @@ const Hero = () => {
     setPar({ px: (e.clientX - r.left) / r.width - 0.5, py: (e.clientY - r.top) / r.height - 0.5 });
   };
   const onLeave = () => setPar({ px: 0, py: 0 });
+
+  // GSAP ScrollTrigger setup
+  useEffect(() => {
+    if (!isDesktop) return;
+
+    const ctx = gsap.context(() => {
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: 'top top',
+          end: 'bottom bottom',
+          scrub: true,
+        },
+      });
+
+      tl.to(characterRef.current, {
+        scale: 0.65,
+        opacity: 0.05,
+        ease: 'none',
+      }, 0)
+      .to(orbitsRef.current, {
+        scale: 1.8,
+        opacity: 0.02,
+        ease: 'none',
+      }, 0)
+      .to(textLeftRef.current, {
+        x: -120,
+        opacity: 0,
+        ease: 'none',
+      }, 0)
+      .to(textRightRef.current, {
+        x: 120,
+        opacity: 0,
+        ease: 'none',
+      }, 0)
+      .to(badgeRef.current, {
+        y: 80,
+        opacity: 0,
+        ease: 'none',
+      }, 0)
+      .to(scrollHintRef.current, {
+        y: 60,
+        opacity: 0,
+        ease: 'none',
+      }, 0);
+
+      // Signature sign-off: fades + draws in as hero scrolls away
+      if (signatureRef.current) {
+        gsap.set(signatureRef.current, { opacity: 0, scale: 0.7, y: 30 });
+
+        gsap.timeline({
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: '20% top',   // starts appearing earlier
+            end: '55% top',     // fully visible by 55%
+            scrub: true,
+          },
+        })
+        .to(signatureRef.current, {
+          opacity: 1,
+          scale: 1,
+          y: 0,
+          ease: 'power2.out',
+        }, 0)
+        .fromTo(
+          signatureRef.current.querySelector('.sig-line'),
+          { clipPath: 'inset(0 100% 0 0)' },
+          { clipPath: 'inset(0 0% 0 0)', ease: 'power1.inOut' },
+          0
+        );
+
+        // Fade out the signature as we approach the very end
+        gsap.timeline({
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: '65% top',
+            end: '85% top',
+            scrub: true,
+          },
+        }).to(signatureRef.current, {
+          opacity: 0,
+          y: -20,
+          ease: 'none',
+        });
+      }
+    });
+
+    return () => ctx.revert();
+  }, [isDesktop]);
 
   /* -------- Mobile: clean static welcome -------- */
   if (!isDesktop) {
@@ -99,56 +197,75 @@ const Hero = () => {
   }
 
   /* -------- Desktop: big centered character, Lando-style -------- */
-  const copyOp = clamp(1 - p * 1.9);
   const parStyle = {
     transform: `translate(${par.px * 18}px, ${par.py * 15}px)`,
     transition: 'transform 0.25s ease-out',
   };
 
   return (
-    <section id="hero" ref={ref} className="relative bg-paper" style={{ height: '185vh' }}>
+    <section id="hero" ref={sectionRef} className="relative bg-paper" style={{ height: '185vh' }}>
       <div ref={stickyRef} onMouseMove={onMove} onMouseLeave={onLeave} className="sticky top-0 h-screen overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(1000px_680px_at_50%_48%,rgba(198,242,78,0.20),transparent_62%)]" aria-hidden="true" />
         <Contours />
-        <Orbits px={par.px} py={par.py} />
+        
+        {/* Orbits wrapper for GSAP scaling */}
+        <div ref={orbitsRef} className="absolute inset-0 pointer-events-none z-0">
+          <Orbits px={par.px} py={par.py} />
+        </div>
 
         {/* welcome text — left */}
-        <div className="absolute left-8 xl:left-16 top-1/2 -translate-y-1/2 max-w-[240px] z-20" style={{ opacity: copyOp }}>
+        <div ref={textLeftRef} className="absolute left-8 xl:left-16 top-1/2 -translate-y-1/2 max-w-[290px] z-20">
           <h1 className="font-serif text-3xl xl:text-4xl font-bold text-ink leading-tight">Hey — I&apos;m Roshit.</h1>
-          <p className="mt-3 text-sm text-ink-soft leading-relaxed">
+          <p className="mt-3 text-base text-ink-soft leading-relaxed">
             Welcome in. Have a look around, and leave a review on your way out.
           </p>
         </div>
 
         {/* tweaky line — right */}
-        <div className="absolute right-8 xl:right-16 top-1/2 -translate-y-1/2 max-w-[220px] text-right z-20" style={{ opacity: copyOp }}>
-          <p className="text-sm italic text-muted leading-relaxed">
+        <div ref={textRightRef} className="absolute right-8 xl:right-16 top-1/2 -translate-y-1/2 max-w-[270px] text-right z-20">
+          <p className="text-base italic text-muted leading-relaxed">
             Still deciding whether to hire me? Say it in plain English — I&apos;ll ship it in code.
           </p>
         </div>
 
         {/* character — center, big */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+        <div ref={characterRef} className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-[55vh] max-w-[86vw]">
           <div style={parStyle}>
             <div className="hero-float">
-              <div className="h-[74vh] w-[55vh] max-w-[86vw]">
-                <HeroCharacter p={p} onHover={setHovered} />
-              </div>
+              <HeroCharacter />
             </div>
           </div>
         </div>
 
         {/* badge — bottom-left */}
-        <div className="absolute left-8 xl:left-16 bottom-10 z-20" style={{ opacity: copyOp }}>
+        <div ref={badgeRef} className="absolute left-8 xl:left-16 bottom-10 z-20">
           <Badge />
         </div>
 
         {/* scroll hint — bottom-center */}
         <div
-          className="absolute left-1/2 -translate-x-1/2 bottom-8 flex items-center gap-3 text-muted font-mono text-xs tracking-wider z-20"
-          style={{ opacity: clamp(1 - p * 2.6) }}
+          ref={scrollHintRef}
+          className="absolute left-1/2 -translate-x-1/2 bottom-8 flex items-center gap-3 text-muted font-mono text-sm tracking-wider z-20"
         >
           scroll to explore <ArrowDown size={18} className="animate-bounce" />
+        </div>
+
+        {/* Signature sign-off — appears on scroll-out */}
+        <div
+          ref={signatureRef}
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-30 flex flex-col items-center gap-3 pointer-events-none"
+        >
+          <div className="sig-line">
+            <img
+              src="/hero/signature.png"
+              alt="Roshit signature"
+              draggable={false}
+              className="w-48 xl:w-56 brightness-[0.15] contrast-[1.2] drop-shadow-[0_0_20px_rgba(26,26,24,0.35)]"
+            />
+          </div>
+          <span className="sig-line font-mono text-[13px] tracking-[0.25em] uppercase text-[#8A8A7A]">
+            signing off · scroll down
+          </span>
         </div>
       </div>
     </section>

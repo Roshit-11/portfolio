@@ -100,7 +100,17 @@ export const Avatar = ({ className = '' }: { className?: string }) => (
   </svg>
 );
 
-export const MiniMe = ({ accent = '#4F46E5', className = '' }: { accent?: string; className?: string }) => (
+export const MiniMe = ({
+  accent = '#4F46E5',
+  className = '',
+  pupilX = 0,
+  pupilY = 0,
+}: {
+  accent?: string;
+  className?: string;
+  pupilX?: number;
+  pupilY?: number;
+}) => (
   <svg viewBox="0 0 72 84" className={className} xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <rect x="16" y="44" width="40" height="40" rx="16" fill={accent} />
     <rect x="26" y="30" width="20" height="20" rx="7" fill="#E8B58C" />
@@ -110,8 +120,28 @@ export const MiniMe = ({ accent = '#4F46E5', className = '' }: { accent?: string
     <rect x="56" y="20" width="10" height="20" rx="4" fill="#16161A" />
     <circle cx="27" cy="29" r="7" fill="#fff" stroke="#22222A" strokeWidth="2" />
     <circle cx="45" cy="29" r="7" fill="#fff" stroke="#22222A" strokeWidth="2" />
-    <circle cx="27" cy="29" r="2.5" fill="#22222A" />
-    <circle cx="45" cy="29" r="2.5" fill="#22222A" />
+    <circle
+      cx="27"
+      cy="29"
+      r="2.5"
+      fill="#22222A"
+      style={{
+        transform: `translate3d(${pupilX}px, ${pupilY}px, 0)`,
+        transformOrigin: '27px 29px',
+        transition: 'transform 0.08s ease-out',
+      }}
+    />
+    <circle
+      cx="45"
+      cy="29"
+      r="2.5"
+      fill="#22222A"
+      style={{
+        transform: `translate3d(${pupilX}px, ${pupilY}px, 0)`,
+        transformOrigin: '45px 29px',
+        transition: 'transform 0.08s ease-out',
+      }}
+    />
     <path d="M31 38 q5 5 10 0" fill="none" stroke="#22222A" strokeWidth="2.4" strokeLinecap="round" />
   </svg>
 );

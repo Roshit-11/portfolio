@@ -10,13 +10,14 @@ export default {
       },
       colors: {
         // Editorial "stone + lime" palette (Lando-inspired)
-        paper: '#D9D6C7', // warm stone base
+        paper: '#E2DFD2', // warm stone base (Cream)
         surface: '#FAF9F3', // warm near-white cards
+        darkCharcoal: '#1A1A18', // Dark Charcoal
         ink: {
           DEFAULT: '#1B1B18',
           soft: '#46453D',
           // warm deep-taupe scale for dark sections / modals
-          950: '#211F19',
+          950: '#1A1A18', // Map to Dark Charcoal
           900: '#2A2823',
           850: '#33322C',
           800: '#3D3B33',
@@ -31,9 +32,9 @@ export default {
           ink: '#333E10',
         },
         // lime = the single bright pop (CTA fills, highlights, dark sections)
-        lime: '#C6F24E',
+        lime: '#C5FF3B', // Neon Accent Lime
         taupe: {
-          DEFAULT: '#33322C',
+          DEFAULT: '#1A1A18', // Map default taupe to Dark Charcoal for the sections
           light: '#3D3A34',
         },
       },

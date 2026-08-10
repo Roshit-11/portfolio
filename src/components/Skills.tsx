@@ -3,6 +3,7 @@ import Section from './Section';
 import { skillGroups } from '../data/portfolio';
 import { useInView } from '../hooks/useInView';
 import { ACCENTS } from '../data/accents';
+import { TechPill } from './TechPill';
 
 const GROUP_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   Languages: Code2,
@@ -40,7 +41,7 @@ const Skills = () => {
               </div>
               <div className="flex flex-wrap gap-2">
                 {group.skills.map((skill) => (
-                  <span key={skill} className="chip-outline">{skill}</span>
+                  <TechPill key={skill} tech={skill} />
                 ))}
               </div>
             </div>

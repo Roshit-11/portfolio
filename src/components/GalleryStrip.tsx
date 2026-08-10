@@ -23,7 +23,7 @@ const Quote = () => (
       <path
         d="M6 46 C 26 8, 40 8, 44 40 C 47 60, 58 20, 70 34 C 80 44, 86 18, 100 30 C 112 40, 120 22, 138 36 C 150 45, 168 30, 176 22"
         fill="none"
-        stroke="#C6F24E"
+        stroke="#C5FF3B"
         strokeWidth="3.4"
         strokeLinecap="round"
       />
@@ -64,7 +64,7 @@ const GalleryStrip = () => {
   /* Mobile: native horizontal scroll */
   if (!isDesktop) {
     return (
-      <section aria-label="Field notes gallery" className="bg-taupe py-16">
+      <section aria-label="Field notes gallery" className="bg-[#1A1A18] py-16" data-cursor="drag">
         <div className="section-shell mb-8">
           <Quote />
         </div>
@@ -79,7 +79,7 @@ const GalleryStrip = () => {
 
   /* Desktop: scroll-linked horizontal slide */
   return (
-    <section ref={ref} aria-label="Field notes gallery" className="bg-taupe relative" style={{ height: '200vh' }}>
+    <section ref={ref} aria-label="Field notes gallery" className="bg-[#1A1A18] relative" style={{ height: '200vh' }} data-cursor="drag">
       <div className="sticky top-0 h-screen overflow-hidden flex flex-col justify-center">
         <div className="section-shell w-full">
           <div className="mb-10"><Quote /></div>

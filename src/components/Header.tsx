@@ -97,7 +97,6 @@ const Header = () => {
             </span>
             <button
               onClick={() => setMenuOpen(false)}
-              aria-label="Close menu"
               className="w-11 h-11 grid place-items-center rounded-xl border border-white/20 hover:bg-white/10 transition"
             >
               <X size={20} />
@@ -109,8 +108,28 @@ const Header = () => {
                 key={item.id}
                 href={`#${item.id}`}
                 onClick={(e) => {
-                  scrollToId(e, item.id);
+                  e.preventDefault();
                   setMenuOpen(false);
+                  
+                  // Release scroll lock immediately
+                  document.body.style.overflow = '';
+                  const lenis = getLenis();
+                  if (lenis) {
+                    lenis.start();
+                    setTimeout(() => {
+                      const el = document.getElementById(item.id);
+                      if (el) lenis.scrollTo(el, { offset: -72 });
+                    }, 50);
+                  } else {
+                    const el = document.getElementById(item.id);
+                    if (el) {
+                      window.scrollTo({
+                        top: el.getBoundingClientRect().top + window.scrollY - 72,
+                        behavior: 'smooth',
+                      });
+                    }
+                  }
+                  history.replaceState(null, '', `#${item.id}`);
                 }}
                 className="group flex items-baseline gap-4 font-serif text-4xl sm:text-6xl font-bold text-paper/80 hover:text-lime transition-colors"
               >
