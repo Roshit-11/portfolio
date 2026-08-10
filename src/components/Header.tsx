@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Menu, X } from 'lucide-react';
+import { FileText, Menu, X } from 'lucide-react';
+import ResumeModal from './ResumeModal';
 
 const NAV = [
   { id: 'about', label: 'About' },
@@ -10,76 +11,119 @@ const NAV = [
   { id: 'contact', label: 'Contact' },
 ];
 
+type LenisLike = {
+  scrollTo: (t: Element, o?: { offset?: number; duration?: number }) => void;
+  stop: () => void;
+  start: () => void;
+};
+const getLenis = () => (window as unknown as { __lenis?: LenisLike }).__lenis;
+
+/** Smooth, offset-correct in-page scroll (via Lenis when available). */
+const scrollToId = (e: React.MouseEvent, id: string) => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  e.preventDefault();
+  const lenis = getLenis();
+  if (lenis) lenis.scrollTo(el, { offset: -72 });
+  else window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 72);
+  history.replaceState(null, '', `#${id}`);
+};
+
 const Header = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [resumeOpen, setResumeOpen] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 40);
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    const onScroll = () => setIsScrolled(window.scrollY > 40);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  useEffect(() => {
+    const lenis = getLenis();
+    if (menuOpen) {
+      document.body.style.overflow = 'hidden';
+      lenis?.stop();
+    } else {
+      document.body.style.overflow = '';
+      lenis?.start();
+    }
+    return () => {
+      document.body.style.overflow = '';
+      lenis?.start();
+    };
+  }, [menuOpen]);
+
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? 'bg-ink-950/85 backdrop-blur-md border-b border-white/5' : 'bg-transparent'
-      }`}
-    >
-      <nav className="section-shell" aria-label="Primary">
-        <div className="flex justify-between items-center h-16">
-          <a href="#hero" className="font-mono font-semibold text-white text-lg" aria-label="Back to top">
-            <span className="text-accent">~/</span>roshit
-            <span className="text-accent animate-blink" aria-hidden="true">
-              _
-            </span>
+    <>
+      <header
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          isScrolled ? 'bg-paper/80 backdrop-blur-md' : 'bg-transparent'
+        }`}
+      >
+        <div className="flex justify-between items-center px-5 sm:px-8 py-4">
+          {/* name logo (top-left) */}
+          <a href="#hero" aria-label="Back to top" className="leading-[0.88]">
+            <span className="block font-sans font-extrabold uppercase tracking-tight text-ink text-lg sm:text-2xl">Roshit</span>
+            <span className="block font-sans font-extrabold uppercase tracking-tight text-ink text-lg sm:text-2xl">Lamichhane</span>
           </a>
 
-          {/* Desktop nav */}
-          <div className="hidden md:flex items-center gap-1">
+          {/* actions (top-right) */}
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={() => setResumeOpen(true)}
+              className="inline-flex items-center gap-2 bg-lime text-ink font-bold text-sm px-5 py-2.5 rounded-full shadow-sm hover:brightness-95 transition"
+            >
+              <FileText size={16} aria-hidden="true" /> Resume
+            </button>
+            <button
+              onClick={() => setMenuOpen(true)}
+              aria-label="Open menu"
+              className="w-11 h-11 grid place-items-center rounded-xl border border-ink/25 text-ink hover:bg-surface transition"
+            >
+              <Menu size={20} />
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* full-screen nav overlay */}
+      {menuOpen && (
+        <div className="fixed inset-0 z-[70] bg-ink-950 text-paper flex flex-col animate-fade-up">
+          <div className="flex justify-between items-center px-5 sm:px-8 py-4">
+            <span className="font-sans font-extrabold uppercase tracking-tight text-lg sm:text-2xl leading-[0.88]">
+              Roshit<br />Lamichhane
+            </span>
+            <button
+              onClick={() => setMenuOpen(false)}
+              aria-label="Close menu"
+              className="w-11 h-11 grid place-items-center rounded-xl border border-white/20 hover:bg-white/10 transition"
+            >
+              <X size={20} />
+            </button>
+          </div>
+          <nav className="flex-1 flex flex-col justify-center gap-1 px-6 sm:px-16" aria-label="Primary">
             {NAV.map((item, i) => (
               <a
                 key={item.id}
                 href={`#${item.id}`}
-                className="px-3 py-2 text-sm font-medium text-slate-300 hover:text-accent transition-colors"
+                onClick={(e) => {
+                  scrollToId(e, item.id);
+                  setMenuOpen(false);
+                }}
+                className="group flex items-baseline gap-4 font-serif text-4xl sm:text-6xl font-bold text-paper/80 hover:text-lime transition-colors"
               >
-                <span className="font-mono text-accent/70 text-xs mr-1">0{i + 1}.</span>
+                <span className="font-mono text-sm text-lime/70">0{i + 1}</span>
                 {item.label}
               </a>
             ))}
-          </div>
-
-          {/* Mobile menu button */}
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden text-slate-200 p-2"
-            aria-expanded={isMenuOpen}
-            aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
-          >
-            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+          </nav>
         </div>
+      )}
 
-        {/* Mobile nav */}
-        {isMenuOpen && (
-          <div className="md:hidden absolute top-16 left-0 right-0 bg-ink-900/95 backdrop-blur-md border-b border-white/10 shadow-xl">
-            <div className="px-4 py-3 space-y-1">
-              {NAV.map((item, i) => (
-                <a
-                  key={item.id}
-                  href={`#${item.id}`}
-                  onClick={() => setIsMenuOpen(false)}
-                  className="block px-3 py-2.5 text-slate-200 hover:text-accent hover:bg-white/5 rounded-md transition-colors"
-                >
-                  <span className="font-mono text-accent/70 text-xs mr-2">0{i + 1}.</span>
-                  {item.label}
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
-      </nav>
-    </header>
+      {resumeOpen && <ResumeModal onClose={() => setResumeOpen(false)} />}
+    </>
   );
 };
 

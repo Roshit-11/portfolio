@@ -1,229 +1,156 @@
-import { useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { ArrowDown, Download, ExternalLink, FileText, Github, Linkedin, Mail, X } from 'lucide-react';
-import ParticleField from './ParticleField';
-import Terminal from './Terminal';
-import { profile } from '../data/portfolio';
+import { useRef, useState } from 'react';
+import { ArrowDown, Binary, Braces, Code2, Command, Cpu, Database, GitBranch, Hash, Laptop, Terminal } from 'lucide-react';
+import HeroCharacter from './HeroCharacter';
+import { useScrollProgress } from '../hooks/useScrollProgress';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
-const resumeViewUrl = `https://drive.google.com/file/d/${profile.resumeDriveId}/view`;
-const resumePreviewUrl = `https://drive.google.com/file/d/${profile.resumeDriveId}/preview`;
-const resumeDownloadUrl = `https://drive.google.com/uc?export=download&id=${profile.resumeDriveId}`;
+const clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 
-/**
- * Lightbox that embeds the resume PDF via Google Drive's /preview endpoint
- * (the only Drive URL that allows iframe embedding) — same pattern as the
- * certification modal.
- */
-const ResumeModal = ({ onClose }: { onClose: () => void }) => {
-  const closeRef = useRef<HTMLButtonElement>(null);
+/* Faint topographic contour background (Lando-style) */
+const Contours = () => (
+  <svg className="absolute inset-0 w-full h-full text-ink" preserveAspectRatio="xMidYMid slice" viewBox="0 0 1440 900" aria-hidden="true">
+    <g fill="none" stroke="currentColor" strokeOpacity="0.06" strokeWidth="1.2">
+      <path d="M-50 180 C 300 60, 520 300, 780 200 S 1250 60, 1500 220" />
+      <path d="M-50 300 C 320 200, 540 420, 800 320 S 1260 200, 1500 340" />
+      <path d="M-50 470 C 260 360, 560 560, 820 470 S 1240 360, 1500 500" />
+      <path d="M-50 640 C 300 540, 540 720, 820 640 S 1250 540, 1500 680" />
+      <path d="M-50 800 C 320 700, 560 880, 820 800 S 1240 700, 1500 840" />
+    </g>
+  </svg>
+);
 
-  useEffect(() => {
-    closeRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
-    document.addEventListener('keydown', onKey);
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = '';
-    };
-  }, [onClose]);
+const OrbitIcon = ({ angle, radius, children }: { angle: number; radius: number; children: React.ReactNode }) => (
+  <span className="absolute left-1/2 top-1/2" style={{ transform: `rotate(${angle}deg) translateY(-${radius}px)` }}>
+    <span className="block w-11 h-11 -translate-x-1/2 -translate-y-1/2 rounded-xl bg-surface/90 border border-line shadow-md grid place-items-center text-accent">
+      {children}
+    </span>
+  </span>
+);
 
-  // Portal to <body>: ancestors animated with CSS transforms would otherwise
-  // become the containing block for position:fixed and misplace the overlay.
-  // No backdrop-filter here: blur on a fixed overlay above a cross-origin
-  // iframe triggers a Chrome compositing bug where the browser hit-tests the
-  // modal at a stale position — clicks on the close button silently fall
-  // through to the iframe.
-  return createPortal(
-    <div
-      className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-8 bg-ink-950/90"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Resume preview"
-    >
-      <div
-        className="bg-ink-900 border border-white/10 rounded-xl w-full max-w-3xl overflow-hidden shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between gap-3 px-5 py-3.5 border-b border-white/10">
-          <div className="min-w-0">
-            <h3 className="font-semibold text-white truncate">Resume</h3>
-            <p className="text-xs text-slate-500">{profile.name}</p>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <a
-              href={resumeDownloadUrl}
-              className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-accent transition-colors px-2 py-1.5"
-            >
-              <Download size={14} aria-hidden="true" /> Download
-            </a>
-            <a
-              href={resumeViewUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-accent transition-colors px-2 py-1.5"
-            >
-              <ExternalLink size={14} aria-hidden="true" /> Open in Drive
-            </a>
-            <button
-              ref={closeRef}
-              onClick={onClose}
-              aria-label="Close resume preview"
-              className="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
-            >
-              <X size={18} />
-            </button>
-          </div>
-        </div>
-        <iframe
-          src={resumePreviewUrl}
-          title="Resume preview"
-          className="w-full h-[65vh] bg-ink-900"
-          allow="autoplay"
-        />
-      </div>
-    </div>,
-    document.body
-  );
-};
+const Orbits = ({ px, py }: { px: number; py: number }) => (
+  <div
+    className="absolute left-1/2 top-1/2 z-0 pointer-events-none"
+    style={{ transform: `translate(calc(-50% + ${px * -16}px), calc(-50% + ${py * -14}px))` }}
+    aria-hidden="true"
+  >
+    <div className="orbit-a absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" style={{ width: 920, height: 920 }}>
+      <span className="absolute inset-0 rounded-full border border-dashed border-accent/15" />
+      <OrbitIcon angle={8} radius={460}><Code2 className="w-5 h-5" /></OrbitIcon>
+      <OrbitIcon angle={68} radius={460}><Cpu className="w-5 h-5" /></OrbitIcon>
+      <OrbitIcon angle={132} radius={460}><Terminal className="w-5 h-5" /></OrbitIcon>
+      <OrbitIcon angle={196} radius={460}><Braces className="w-5 h-5" /></OrbitIcon>
+      <OrbitIcon angle={262} radius={460}><Database className="w-5 h-5" /></OrbitIcon>
+      <OrbitIcon angle={318} radius={460}><GitBranch className="w-5 h-5" /></OrbitIcon>
+    </div>
+    <div className="orbit-b absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" style={{ width: 680, height: 680 }}>
+      <span className="absolute inset-0 rounded-full border border-dashed border-accent/12" />
+      <OrbitIcon angle={40} radius={340}><Binary className="w-5 h-5" /></OrbitIcon>
+      <OrbitIcon angle={140} radius={340}><Laptop className="w-5 h-5" /></OrbitIcon>
+      <OrbitIcon angle={230} radius={340}><Hash className="w-5 h-5" /></OrbitIcon>
+      <OrbitIcon angle={320} radius={340}><Command className="w-5 h-5" /></OrbitIcon>
+    </div>
+    <div className="orbit-a absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" style={{ width: 500, height: 500, animationDuration: '58s' }}>
+      <span className="absolute inset-0 rounded-full border border-dashed border-accent/10" />
+      <OrbitIcon angle={100} radius={250}><Cpu className="w-4 h-4" /></OrbitIcon>
+      <OrbitIcon angle={280} radius={250}><Braces className="w-4 h-4" /></OrbitIcon>
+    </div>
+  </div>
+);
 
-const ROLES = [
-  'Software Developer',
-  'AI Student',
-  'Automation Builder',
-  'Full-Stack Learner',
-];
-
-/** Typewriter cycling through roles. */
-function useTypewriter(words: string[]) {
-  const [text, setText] = useState('');
-  const [wordIdx, setWordIdx] = useState(0);
-  const [deleting, setDeleting] = useState(false);
-
-  useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setText(words[0]);
-      return;
-    }
-    const word = words[wordIdx % words.length];
-    const done = !deleting && text === word;
-    const empty = deleting && text === '';
-
-    const delay = done ? 1800 : deleting ? 40 : 75;
-    const t = setTimeout(() => {
-      if (done) setDeleting(true);
-      else if (empty) {
-        setDeleting(false);
-        setWordIdx((i) => i + 1);
-      } else {
-        setText(word.slice(0, text.length + (deleting ? -1 : 1)));
-      }
-    }, delay);
-    return () => clearTimeout(t);
-  }, [text, deleting, wordIdx, words]);
-
-  return text;
-}
+const Badge = () => (
+  <div className="rounded-2xl border border-ink/15 bg-surface/70 backdrop-blur-sm px-5 py-4 w-[230px] shadow-sm">
+    <p className="font-mono text-[11px] tracking-[0.18em] text-muted uppercase">Currently building</p>
+    <div className="flex items-center gap-2 mt-2">
+      <Laptop className="w-5 h-5 text-accent shrink-0" aria-hidden="true" />
+      <p className="text-sm font-semibold text-ink leading-tight">Outbound data pipeline</p>
+    </div>
+    <p className="text-xs text-muted mt-1.5">@ Allied Title &amp; Escrow · since 2026</p>
+  </div>
+);
 
 const Hero = () => {
-  const typed = useTypewriter(ROLES);
-  const [resumeOpen, setResumeOpen] = useState(false);
+  const isDesktop = useMediaQuery('(min-width: 1024px)');
+  const { ref, progress: p } = useScrollProgress<HTMLElement>();
+  const stickyRef = useRef<HTMLDivElement>(null);
+  const [par, setPar] = useState({ px: 0, py: 0 });
+  const [, setHovered] = useState(false);
+
+  const onMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const el = stickyRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    setPar({ px: (e.clientX - r.left) / r.width - 0.5, py: (e.clientY - r.top) / r.height - 0.5 });
+  };
+  const onLeave = () => setPar({ px: 0, py: 0 });
+
+  /* -------- Mobile: clean static welcome -------- */
+  if (!isDesktop) {
+    return (
+      <section id="hero" className="relative min-h-screen flex flex-col justify-center bg-paper pt-24 pb-14 overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(198,242,78,0.18),transparent_60%)]" aria-hidden="true" />
+        <Contours />
+        <div className="section-shell relative z-10 flex flex-col items-center text-center gap-6">
+          <h1 className="font-serif text-4xl font-bold text-ink">Hey — I&apos;m Roshit.</h1>
+          <div className="w-64"><HeroCharacter showHint={false} /></div>
+          <p className="max-w-xs text-ink-soft">Welcome in. Have a look around, and leave a review on your way out.</p>
+        </div>
+      </section>
+    );
+  }
+
+  /* -------- Desktop: big centered character, Lando-style -------- */
+  const copyOp = clamp(1 - p * 1.9);
+  const parStyle = {
+    transform: `translate(${par.px * 18}px, ${par.py * 15}px)`,
+    transition: 'transform 0.25s ease-out',
+  };
 
   return (
-    <section id="hero" className="relative min-h-screen flex items-center overflow-hidden">
-      {/* Background layers */}
-      <div className="absolute inset-0 bg-ink-950" aria-hidden="true">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(34,211,238,0.08),transparent_55%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(167,139,250,0.07),transparent_55%)]" />
-        <div
-          className="absolute inset-0 opacity-[0.35]"
-          style={{
-            backgroundImage:
-              'linear-gradient(rgba(148,163,184,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.05) 1px, transparent 1px)',
-            backgroundSize: '56px 56px',
-          }}
-        />
-      </div>
-      <ParticleField />
+    <section id="hero" ref={ref} className="relative bg-paper" style={{ height: '185vh' }}>
+      <div ref={stickyRef} onMouseMove={onMove} onMouseLeave={onLeave} className="sticky top-0 h-screen overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(1000px_680px_at_50%_48%,rgba(198,242,78,0.20),transparent_62%)]" aria-hidden="true" />
+        <Contours />
+        <Orbits px={par.px} py={par.py} />
 
-      <div className="section-shell relative z-10 grid lg:grid-cols-[1.15fr,1fr] gap-12 items-center py-28 w-full">
-        <div className="animate-fade-up">
-          <p className="font-mono text-accent text-sm sm:text-base mb-4">Hi, my name is</p>
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-white tracking-tight">
-            Roshit Lamichhane<span className="text-accent">.</span>
-          </h1>
-          <p className="mt-4 font-mono text-xl sm:text-2xl text-slate-300 h-8">
-            <span aria-live="polite">{typed}</span>
-            <span className="text-accent animate-blink" aria-hidden="true">
-              ▍
-            </span>
+        {/* welcome text — left */}
+        <div className="absolute left-8 xl:left-16 top-1/2 -translate-y-1/2 max-w-[240px] z-20" style={{ opacity: copyOp }}>
+          <h1 className="font-serif text-3xl xl:text-4xl font-bold text-ink leading-tight">Hey — I&apos;m Roshit.</h1>
+          <p className="mt-3 text-sm text-ink-soft leading-relaxed">
+            Welcome in. Have a look around, and leave a review on your way out.
           </p>
-          <p className="mt-6 max-w-xl text-lg text-slate-400 leading-relaxed">{profile.tagline}</p>
+        </div>
 
-          <div className="mt-10 flex flex-wrap items-center gap-4">
-            <a
-              href="#projects"
-              className="px-7 py-3.5 rounded-lg bg-accent text-ink-950 font-semibold hover:bg-accent-soft transition-colors shadow-lg shadow-accent/20"
-            >
-              View my work
-            </a>
-            <a
-              href="#contact"
-              className="px-7 py-3.5 rounded-lg border border-accent/40 text-accent font-semibold hover:bg-accent/10 transition-colors"
-            >
-              Get in touch
-            </a>
-            <button
-              onClick={() => setResumeOpen(true)}
-              className="flex items-center gap-2 px-7 py-3.5 rounded-lg border border-accent/40 text-accent font-semibold hover:bg-accent/10 transition-colors"
-            >
-              <FileText size={18} aria-hidden="true" /> View Resume
-            </button>
-            <div className="flex items-center gap-2 sm:ml-2">
-              <a
-                href={profile.github}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="GitHub profile"
-                className="p-3 rounded-lg text-slate-400 hover:text-accent hover:bg-white/5 transition-colors"
-              >
-                <Github size={22} />
-              </a>
-              <a
-                href={profile.linkedin}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="LinkedIn profile"
-                className="p-3 rounded-lg text-slate-400 hover:text-accent hover:bg-white/5 transition-colors"
-              >
-                <Linkedin size={22} />
-              </a>
-              <a
-                href={`mailto:${profile.email}`}
-                aria-label="Send email"
-                className="p-3 rounded-lg text-slate-400 hover:text-accent hover:bg-white/5 transition-colors"
-              >
-                <Mail size={22} />
-              </a>
+        {/* tweaky line — right */}
+        <div className="absolute right-8 xl:right-16 top-1/2 -translate-y-1/2 max-w-[220px] text-right z-20" style={{ opacity: copyOp }}>
+          <p className="text-sm italic text-muted leading-relaxed">
+            Still deciding whether to hire me? Say it in plain English — I&apos;ll ship it in code.
+          </p>
+        </div>
+
+        {/* character — center, big */}
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+          <div style={parStyle}>
+            <div className="hero-float">
+              <div className="h-[74vh] w-[55vh] max-w-[86vw]">
+                <HeroCharacter p={p} onHover={setHovered} />
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="hidden lg:block animate-fade-up" style={{ animationDelay: '0.2s' }}>
-          <Terminal />
+        {/* badge — bottom-left */}
+        <div className="absolute left-8 xl:left-16 bottom-10 z-20" style={{ opacity: copyOp }}>
+          <Badge />
+        </div>
+
+        {/* scroll hint — bottom-center */}
+        <div
+          className="absolute left-1/2 -translate-x-1/2 bottom-8 flex items-center gap-3 text-muted font-mono text-xs tracking-wider z-20"
+          style={{ opacity: clamp(1 - p * 2.6) }}
+        >
+          scroll to explore <ArrowDown size={18} className="animate-bounce" />
         </div>
       </div>
-
-      <a
-        href="#about"
-        aria-label="Scroll to about section"
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 text-slate-500 hover:text-accent transition-colors animate-bounce"
-      >
-        <ArrowDown size={26} />
-      </a>
-
-      {resumeOpen && <ResumeModal onClose={() => setResumeOpen(false)} />}
     </section>
   );
 };

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ExternalLink, Github, Sparkles } from 'lucide-react';
+import { ArrowUpRight, ExternalLink, Github, Sparkles } from 'lucide-react';
 import Section from './Section';
 import { projects, Project } from '../data/portfolio';
 import { useInView } from '../hooks/useInView';
@@ -12,42 +12,34 @@ const ProjectCard = ({ project }: { project: Project }) => {
   return (
     <article
       ref={ref}
-      className={`reveal group glass rounded-xl p-6 sm:p-7 flex flex-col hover:border-accent/30 hover:-translate-y-1.5 transition-all duration-300 ${
+      className={`reveal group card p-6 card-interactive flex flex-col ${
         project.featured ? 'ring-1 ring-accent/20' : ''
       }`}
     >
       <div className="flex items-start justify-between gap-3 mb-4">
-        <h3 className="text-xl font-bold text-white group-hover:text-accent-soft transition-colors">
+        <h3 className="card-title group-hover:text-accent transition-colors">
           {project.title}
         </h3>
-        <div className="flex items-center gap-1 shrink-0">
-          {project.featured && (
-            <span className="flex items-center gap-1 text-xs font-mono text-accent bg-accent/10 border border-accent/25 px-2 py-1 rounded-md">
-              <Sparkles size={12} aria-hidden="true" /> featured
-            </span>
-          )}
-        </div>
+        {project.featured && (
+          <span className="flex items-center gap-1 text-xs font-medium text-accent bg-accent-soft px-2.5 py-1 rounded-lg shrink-0">
+            <Sparkles size={12} aria-hidden="true" /> featured
+          </span>
+        )}
       </div>
 
       <div className="space-y-3 text-sm leading-relaxed flex-1">
-        <p className="text-slate-400">
-          <span className="font-mono text-xs text-accent-violet uppercase tracking-wider block mb-1">
-            Problem
-          </span>
-          {project.problem}
-        </p>
-        <p className="text-slate-400">
-          <span className="font-mono text-xs text-accent uppercase tracking-wider block mb-1">
-            Solution
-          </span>
-          {project.solution}
-        </p>
-        <ul className="text-slate-500 space-y-1.5 pt-1">
+        <div>
+          <span className="font-mono text-[11px] text-muted uppercase tracking-wider block mb-1">Problem</span>
+          <p className="text-ink-soft">{project.problem}</p>
+        </div>
+        <div>
+          <span className="font-mono text-[11px] text-accent uppercase tracking-wider block mb-1">Solution</span>
+          <p className="text-ink-soft">{project.solution}</p>
+        </div>
+        <ul className="text-muted space-y-1.5 pt-1">
           {project.features.map((f, i) => (
             <li key={i} className="flex gap-2">
-              <span className="text-accent" aria-hidden="true">
-                ▸
-              </span>
+              <span className="text-accent" aria-hidden="true">▸</span>
               <span>{f}</span>
             </li>
           ))}
@@ -56,19 +48,17 @@ const ProjectCard = ({ project }: { project: Project }) => {
 
       <div className="flex flex-wrap gap-2 mt-5">
         {project.tech.map((t) => (
-          <span key={t} className="chip">
-            {t}
-          </span>
+          <span key={t} className="chip">{t}</span>
         ))}
       </div>
 
-      <div className="flex items-center gap-4 mt-5 pt-4 border-t border-white/5">
+      <div className="flex items-center gap-4 mt-5 pt-4 border-t border-line">
         {project.github && (
           <a
             href={project.github}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-sm text-slate-300 hover:text-accent transition-colors"
+            className="flex items-center gap-1.5 text-sm font-medium text-ink hover:text-accent transition-colors"
           >
             <Github size={16} aria-hidden="true" /> Code
           </a>
@@ -78,13 +68,20 @@ const ProjectCard = ({ project }: { project: Project }) => {
             href={project.live}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-sm text-slate-300 hover:text-accent transition-colors"
+            className="flex items-center gap-1.5 text-sm font-medium text-accent transition-colors"
           >
             <ExternalLink size={16} aria-hidden="true" /> Live demo
           </a>
         )}
         {!project.github && !project.live && project.note && (
-          <span className="text-xs text-slate-500 font-mono">{project.note}</span>
+          <span className="text-xs text-muted font-mono">{project.note}</span>
+        )}
+        {(project.github || project.live) && (
+          <ArrowUpRight
+            size={18}
+            className="ml-auto text-accent opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all"
+            aria-hidden="true"
+          />
         )}
       </div>
     </article>
@@ -98,9 +95,10 @@ const Projects = () => {
   return (
     <Section
       id="projects"
-      kicker="03. projects"
-      title="Things I've Built"
-      lead="From AI pipelines running 24/7 to database-backed desktop systems — each one taught me something different."
+      title="Things I've built."
+      lead="From AI pipelines running 24/7 to database-backed systems — each one taught me something different."
+      className="bg-[#cfccba]"
+      companion={{ msg: '// stuff I built', accent: '#5B6B23' }}
     >
       <div className="flex flex-wrap gap-2 mb-10" role="group" aria-label="Filter projects by category">
         {CATEGORIES.map((cat) => (
@@ -108,10 +106,10 @@ const Projects = () => {
             key={cat}
             onClick={() => setFilter(cat)}
             aria-pressed={filter === cat}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${
+            className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors border ${
               filter === cat
-                ? 'bg-accent/15 text-accent border-accent/40'
-                : 'text-slate-400 border-white/10 hover:text-slate-200 hover:border-white/25'
+                ? 'bg-ink text-paper border-ink'
+                : 'bg-surface text-ink-soft border-line hover:border-accent/40'
             }`}
           >
             {cat}
@@ -119,13 +117,13 @@ const Projects = () => {
         ))}
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filtered.map((p) => (
           <ProjectCard key={p.title} project={p} />
         ))}
       </div>
 
-      <p className="mt-10 text-center text-sm text-slate-500 font-mono">
+      <p className="mt-10 text-sm text-muted font-mono">
         More on{' '}
         <a
           href="https://github.com/Roshit-11"
@@ -133,7 +131,7 @@ const Projects = () => {
           rel="noopener noreferrer"
           className="text-accent hover:underline"
         >
-          github.com/Roshit-11
+          github.com/Roshit-11 →
         </a>
       </p>
     </Section>
