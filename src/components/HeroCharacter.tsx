@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import { gsap } from 'gsap';
 
 interface HeroCharacterProps {
   onHover?: (hovered: boolean) => void;
@@ -36,16 +35,28 @@ export default function HeroCharacter({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [coords, setCoords] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
-  const [isIdleActive, setIsIdleActive] = useState(false);
+
+  // On mobile/tablets, start automatic multi-directional scratch unmasking immediately on mount
+  const [isIdleActive, setIsIdleActive] = useState(() => {
+    return typeof window !== 'undefined' && window.innerWidth < 1024;
+  });
 
   const idleTimerRef = useRef<number | null>(null);
-  const gsapTweenRef = useRef<gsap.core.Tween | null>(null);
+  
+  // State for canvas trail tracking (raw target coordinate inputs)
+  const st = useRef({
+    px: -999,
+    py: -999,
+    active: false,
+  });
 
-  // Raw mouse target
-  const st = useRef({ px: -999, py: -999, active: false });
-
-  // Lerped smooth cursor position
-  const lerped = useRef({ x: -999, y: -999, lpx: -999, lpy: -999 });
+  // Lerped smooth coordinate references
+  const lerped = useRef({
+    x: -999,
+    y: -999,
+    lpx: -999,
+    lpy: -999,
+  });
 
   // Per-stamp trail history (each stamp fades independently)
   const stamps = useRef<BrushStamp[]>([]);
@@ -61,15 +72,20 @@ export default function HeroCharacter({
 
   const wobbleActive = isHovered || isIdleActive;
 
+  // Handle coordinates tracking on mouse move
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     cancelIdleAnimation();
+
     const rect = containerRef.current?.getBoundingClientRect();
     if (!rect) return;
+
     st.current.px = e.clientX - rect.left;
     st.current.py = e.clientY - rect.top;
     st.current.active = true;
+
     setIsHovered(true);
     onHover?.(true);
+
     startIdleTimer();
   };
 
@@ -82,9 +98,11 @@ export default function HeroCharacter({
   const handleMouseLeave = () => {
     setIsHovered(false);
     onHover?.(false);
+    
     st.current.active = false;
     st.current.px = -999;
     st.current.py = -999;
+
     startIdleTimer();
   };
 
@@ -118,54 +136,58 @@ export default function HeroCharacter({
     st.current.active = false;
     st.current.px = -999;
     st.current.py = -999;
-    startIdleTimer();
+    
+    // Resume automatic multidirectional scratch loop on mobile immediately
+    const isMobile = window.innerWidth < 1024;
+    if (isMobile) {
+      setIsIdleActive(true);
+    } else {
+      startIdleTimer();
+    }
   };
 
   const startIdleTimer = () => {
+    const isMobile = window.innerWidth < 1024;
+    if (isMobile) {
+      setIsIdleActive(true);
+      return;
+    }
     if (idleTimerRef.current) window.clearTimeout(idleTimerRef.current);
     idleTimerRef.current = window.setTimeout(startIdleSweep, 3500);
   };
 
   const cancelIdleAnimation = () => {
-    setIsIdleActive(false);
-    if (idleTimerRef.current) { window.clearTimeout(idleTimerRef.current); idleTimerRef.current = null; }
-    if (gsapTweenRef.current) { gsapTweenRef.current.kill(); gsapTweenRef.current = null; }
+    const isMobile = window.innerWidth < 1024;
+    if (isMobile) {
+      setIsIdleActive(false);
+    } else {
+      setIsIdleActive(false);
+      if (idleTimerRef.current) {
+        window.clearTimeout(idleTimerRef.current);
+        idleTimerRef.current = null;
+      }
+    }
   };
 
   const startIdleSweep = () => {
     cancelIdleAnimation();
     setIsIdleActive(true);
-    const el = containerRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const w = rect.width || 432;
-    const h = rect.height || 578;
-    const startPos = { x: w * 0.18, y: h * 0.35 };
-    st.current.px = startPos.x;
-    st.current.py = startPos.y;
-    st.current.active = true;
-    const target = { ...startPos };
-    gsapTweenRef.current = gsap.to(target, {
-      x: w * 0.82, y: h * 0.38, duration: 3.2,
-      repeat: -1, yoyo: true, ease: 'sine.inOut',
-      onUpdate: () => { st.current.px = target.x; st.current.py = target.y; st.current.active = true; },
-    });
   };
 
-  // ─── Canvas engine ───
+  // Canvas engine render loop
   useEffect(() => {
     const cv = canvasRef.current;
     if (!cv) return;
     const ctx = cv.getContext('2d');
-
-    // Trail canvas (rebuilt each frame from stamp history)
+    
+    // Scratch trail sub-canvas
     const trail = document.createElement('canvas');
     const tctx = trail.getContext('2d');
-
-    // Temp composition canvas
+    
+    // Masking composition temp canvas
     const tmp = document.createElement('canvas');
     const mctx = tmp.getContext('2d');
-
+    
     if (!ctx || !tctx || !mctx) return;
 
     const real = new Image();
@@ -173,6 +195,7 @@ export default function HeroCharacter({
     const helm = new Image();
     helm.src = '/hero/cartoon.png';
 
+    // R_BRUSH is dynamic: smaller on mobile screens (34) for touch precision, 62 on laptops
     let R_BRUSH = window.innerWidth < 1024 ? 34 : 62;
 
     // ── Per-stamp timing (in frames at ~60fps) ──
@@ -181,12 +204,15 @@ export default function HeroCharacter({
     const TOTAL_LIFE = HOLD_FRAMES + FADE_FRAMES;
 
     let dpr = Math.min(2, window.devicePixelRatio || 1);
-
+    
     const resize = () => {
       dpr = Math.min(2, window.devicePixelRatio || 1);
       const w = Math.round(cv.clientWidth * dpr);
       const h = Math.round(cv.clientHeight * dpr);
-      [cv, trail, tmp].forEach((c) => { c.width = w; c.height = h; });
+      [cv, trail, tmp].forEach((c) => {
+        c.width = w;
+        c.height = h;
+      });
       R_BRUSH = window.innerWidth < 1024 ? 34 : 62;
     };
     resize();
@@ -195,7 +221,10 @@ export default function HeroCharacter({
     // Helper: draw a smooth wobbly blob using quadratic curves for silky edges
     const wobblyPath = (
       c: CanvasRenderingContext2D,
-      cx: number, cy: number, r: number, seed: number,
+      cx: number,
+      cy: number,
+      r: number,
+      seed: number,
     ) => {
       // Pre-compute all wobble control points
       const pts: { x: number; y: number }[] = [];
@@ -221,39 +250,58 @@ export default function HeroCharacter({
       c.closePath();
     };
 
-    // ── HUD visor overlay ──
-    const drawHUD = (c: CanvasRenderingContext2D, W: number, H: number, time: number) => {
-      const vx = 0.33 * W, vy = 0.31 * H, vw = 0.34 * W, vh = 0.10 * H;
+    const drawHUDOverlay = (c: CanvasRenderingContext2D, W: number, H: number, time: number) => {
+      // Visor area coordinates: 33% width, 31% height
+      const vx = 0.33 * W;
+      const vy = 0.31 * H;
+      const vw = 0.34 * W;
+      const vh = 0.10 * H;
+
       c.save();
-      c.fillStyle = 'rgba(0,0,0,0.45)';
-      c.strokeStyle = 'rgba(197,255,59,0.35)';
+      
+      // Screen box
+      c.fillStyle = 'rgba(0, 0, 0, 0.45)';
+      c.strokeStyle = 'rgba(197, 255, 59, 0.35)';
       c.lineWidth = 1.5;
       c.beginPath();
       c.roundRect ? c.roundRect(vx, vy, vw, vh, 4) : c.rect(vx, vy, vw, vh);
-      c.fill(); c.stroke();
+      c.fill();
+      c.stroke();
 
-      [
-        { w: 0.48, t: 0.15, d: 0 }, { w: 0.28, t: 0.35, d: 400 },
-        { w: 0.38, t: 0.55, d: 800 }, { w: 0.42, t: 0.75, d: 200 },
-      ].forEach((ln) => {
-        const pulse = 0.45 + 0.45 * Math.sin(time / 200 + ln.d / 100);
-        c.fillStyle = `rgba(197,255,59,${pulse})`;
-        c.shadowColor = '#C5FF3B'; c.shadowBlur = 4;
+      // Glowing text lines
+      const lines = [
+        { width: 0.48, top: 0.15, d: 0 },
+        { width: 0.28, top: 0.35, d: 400 },
+        { width: 0.38, top: 0.55, d: 800 },
+        { width: 0.42, top: 0.75, d: 200 },
+      ];
+
+      lines.forEach((line) => {
+        const pulse = 0.45 + 0.45 * Math.sin(time / 200 + line.d / 100);
+        c.fillStyle = `rgba(197, 255, 59, ${pulse})`;
+        c.shadowColor = '#C5FF3B';
+        c.shadowBlur = 4;
         c.beginPath();
-        c.roundRect
-          ? c.roundRect(vx + vw * 0.08, vy + vh * ln.t, vw * ln.w, vh * 0.08, 1)
-          : c.rect(vx + vw * 0.08, vy + vh * ln.t, vw * ln.w, vh * 0.08);
+        c.roundRect 
+          ? c.roundRect(vx + vw * 0.08, vy + vh * line.top, vw * line.width, vh * 0.08, 1) 
+          : c.rect(vx + vw * 0.08, vy + vh * line.top, vw * line.width, vh * 0.08);
         c.fill();
       });
 
+      // Scanning HUD beam line
       c.shadowBlur = 5;
-      c.strokeStyle = 'rgba(197,255,59,0.75)';
-      const sy = vy + vh * (0.5 - 0.5 * Math.cos(((time / 2200) % 1) * Math.PI * 2));
-      c.beginPath(); c.moveTo(vx, sy); c.lineTo(vx + vw, sy); c.stroke();
+      c.strokeStyle = 'rgba(197, 255, 59, 0.75)';
+      const scanProgress = (time / 2200) % 1;
+      // Bounce back and forth
+      const scanY = vy + vh * (0.5 - 0.5 * Math.cos(scanProgress * Math.PI * 2));
+      c.beginPath();
+      c.moveTo(vx, scanY);
+      c.lineTo(vx + vw, scanY);
+      c.stroke();
+
       c.restore();
     };
 
-    // ── Main draw loop ──
     let rafId = 0;
     const draw = (time: number) => {
       const W = cv.width;
@@ -262,22 +310,50 @@ export default function HeroCharacter({
       const lp = lerped.current;
       const frame = frameCount.current++;
 
-      // 1. Lerp cursor
-      const isDragging = s.active && s.px > -900;
-      if (isDragging) {
-        if (lp.x < -900) { lp.x = s.px; lp.y = s.py; }
-        else { lp.x += (s.px - lp.x) * 0.10; lp.y += (s.py - lp.y) * 0.10; }
+      // Evaluate mobile status dynamically
+      const isMobile = window.innerWidth < 1024;
+
+      // 1. Calculate automatic Lissajous curve coordinates when idle active
+      // (This traces in all directions, north/south/east/west/diagonals)
+      if (isIdleActive) {
+        const layoutW = cv.clientWidth;
+        const layoutH = cv.clientHeight;
+        const cx = layoutW * 0.5;
+        const cy = layoutH * 0.5;
+        // Tracing boundary limits (covers 68% width and 60% height of helmet)
+        const rx = layoutW * 0.34;
+        const ry = layoutH * 0.30;
+
+        const speed = isMobile ? 0.0006 : 0.0008; // slightly slower on mobile
+        const t = time * speed;
+        s.px = cx + Math.sin(t * 1.4) * rx;
+        s.py = cy + Math.cos(t * 1.9) * ry;
+        s.active = true;
       }
 
-      // Smooth brush radius transition
-      const targetR = isDragging ? R_BRUSH : 0;
-      const targetOp = isDragging ? 1 : 0;
-      brushState.current.radius += (targetR - brushState.current.radius) * 0.15;
-      brushState.current.opacity += (targetOp - brushState.current.opacity) * 0.15;
+      // 2. Smoothly Lerp Coordinates for mercury fluid flow easing
+      const isDragging = s.active && s.px > -900;
+      if (isDragging) {
+        if (lp.x < -900) {
+          lp.x = s.px;
+          lp.y = s.py;
+        } else {
+          // Smooth fluid tracking velocity
+          lp.x += (s.px - lp.x) * 0.10;
+          lp.y += (s.py - lp.y) * 0.10;
+        }
+      }
+
+      // Smoothly transition brush radius & opacity for liquid shrink/grow aftereffect
+      const targetRadius = isDragging ? R_BRUSH : 0;
+      const targetOpacity = isDragging ? 1 : 0;
+      brushState.current.radius += (targetRadius - brushState.current.radius) * 0.15;
+      brushState.current.opacity += (targetOpacity - brushState.current.opacity) * 0.15;
+
       const currentR = brushState.current.radius;
       const currentOp = brushState.current.opacity;
 
-      // 2. Add new stamps along the brush path
+      // 3. Add new stamps along the brush path
       if (lp.x > -900 && currentR > 0.5 && isDragging) {
         setCoords({ x: lp.x, y: lp.y });
 
@@ -299,7 +375,8 @@ export default function HeroCharacter({
           if (last && Math.hypot(sx - last.x, sy - last.y) < spacing * 0.5) continue;
 
           arr.push({
-            x: sx, y: sy,
+            x: sx,
+            y: sy,
             r: currentR,
             born: frame,
             seed: time * 0.005,
@@ -311,11 +388,14 @@ export default function HeroCharacter({
       } else {
         lp.lpx = -999;
         lp.lpy = -999;
-        if (!isDragging) { lp.x = -999; lp.y = -999; }
+        if (!isDragging) {
+          lp.x = -999;
+          lp.y = -999;
+        }
       }
 
-      // 3. Rebuild the trail canvas from per-stamp history
-      //    Each stamp has its own lifecycle: hold → fade → die
+      // 4. Rebuild the trail canvas from per-stamp history
+      // Each stamp has its own lifecycle: hold → fade → die
       tctx.clearRect(0, 0, W, H);
       const alive: BrushStamp[] = [];
 
@@ -352,39 +432,42 @@ export default function HeroCharacter({
 
       stamps.current = alive;
 
-      // 4. Composite: helmet base → erase trail → masked portrait → overlay
+      // 5. Render composition
       ctx.clearRect(0, 0, W, H);
       if (real.complete && helm.complete && real.naturalWidth) {
-        // Helmet base + HUD
+        // Draw the helmet base layer (with VISOR HUD details) at the bottom
         ctx.globalCompositeOperation = 'source-over';
         ctx.drawImage(helm, 0, 0, W, H);
-        drawHUD(ctx, W, H, time);
+        drawHUDOverlay(ctx, W, H, time);
 
-        // Erase trail from helmet
+        // Erase the scratch trail area from the helmet base layer
         ctx.globalCompositeOperation = 'destination-out';
         ctx.drawImage(trail, 0, 0);
 
-        // Prepare masked portrait on tmp canvas
+        // Prepare masked portrait layer on the temporary canvas
         mctx.clearRect(0, 0, W, H);
         mctx.globalCompositeOperation = 'source-over';
         mctx.globalAlpha = 1;
-        mctx.drawImage(real, 0, 0, W, H);
+        mctx.drawImage(real, 0, 0, W, H); // Draw portrait image on tmp canvas
+
+        // Mask the portrait to the scratch trail path
         mctx.globalCompositeOperation = 'destination-in';
         mctx.drawImage(trail, 0, 0);
 
-        // Draw masked portrait on top
+        // Draw the masked portrait on top of the erased helmet base
         ctx.globalCompositeOperation = 'source-over';
         ctx.drawImage(tmp, 0, 0);
 
-        // 5. Draw wobbly glowing outline at cursor
+        // 6. Draw wobbly mercury glowing outline (the fluid eraser outline) directly on canvas
         if (lp.x > -900 && currentR > 0.5) {
-          // Trailing ghost outlines
+          // Draw older history trail outlines behind the lead outline
           const history = outlineTrail.current;
           history.forEach((pt) => {
             ctx.save();
-            const bs = currentR * dpr * (0.45 + 0.55 * pt.alpha);
-            wobblyPath(ctx, pt.x * dpr, pt.y * dpr, bs, time * 0.005);
-            ctx.strokeStyle = `rgba(197,255,59,${pt.alpha * currentOp * 0.5})`;
+            const brushSize = currentR * dpr * (0.45 + 0.55 * pt.alpha);
+            wobblyPath(ctx, pt.x * dpr, pt.y * dpr, brushSize, time * 0.005);
+
+            ctx.strokeStyle = `rgba(197, 255, 59, ${pt.alpha * currentOp * 0.5})`; // slightly softer trailing outlines
             ctx.lineWidth = 1.8 * dpr;
             ctx.shadowColor = '#C5FF3B';
             ctx.shadowBlur = 5 * dpr * pt.alpha * currentOp;
@@ -392,27 +475,31 @@ export default function HeroCharacter({
             ctx.restore();
           });
 
+          // Decay alphas of trail history
           outlineTrail.current = history
             .map((pt) => ({ ...pt, alpha: pt.alpha * 0.83 }))
             .filter((pt) => pt.alpha > 0.08);
 
-          if (isDragging) {
+          // Push current coordinates into history trail if cursor moved sufficiently
+          // (Only track user finger/mouse movement for outline trail, not auto-idle curves)
+          if (isDragging && !isIdleActive) {
             const lastPt = history[history.length - 1];
             if (!lastPt || Math.hypot(lp.x - lastPt.x, lp.y - lastPt.y) > 4) {
               history.push({ x: lp.x, y: lp.y, alpha: 1.0 });
             }
           }
 
-          // Lead outline
+          // Draw the active lead outline at the current brush tip
           ctx.save();
           wobblyPath(ctx, lp.x * dpr, lp.y * dpr, currentR * dpr, time * 0.005);
-          ctx.strokeStyle = `rgba(197,255,59,${currentOp})`;
+          ctx.strokeStyle = `rgba(197, 255, 59, ${currentOp})`;
           ctx.lineWidth = 2.5 * dpr;
           ctx.shadowColor = '#C5FF3B';
           ctx.shadowBlur = 8 * dpr * currentOp;
           ctx.stroke();
           ctx.restore();
         } else {
+          // Empty outline history when inactive
           outlineTrail.current = [];
         }
       }
@@ -420,20 +507,38 @@ export default function HeroCharacter({
       rafId = requestAnimationFrame(draw);
     };
 
+    // Start engine when images finish loading
     let imagesLoaded = 0;
-    const onImgLoad = () => { imagesLoaded++; if (imagesLoaded === 2) rafId = requestAnimationFrame(draw); };
+    const onImgLoad = () => {
+      imagesLoaded++;
+      if (imagesLoaded === 2) {
+        rafId = requestAnimationFrame(draw);
+      }
+    };
     real.onload = onImgLoad;
     helm.onload = onImgLoad;
 
-    return () => { cancelAnimationFrame(rafId); window.removeEventListener('resize', resize); };
-  }, []);
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', resize);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isIdleActive]);
 
   useEffect(() => {
-    startIdleTimer();
-    return () => cancelIdleAnimation();
+    const isMobile = window.innerWidth < 1024;
+    if (isMobile) {
+      setIsIdleActive(true);
+    } else {
+      startIdleTimer();
+    }
+    return () => {
+      cancelIdleAnimation();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Glitter configuration data (12 particles with faster scatter timelines)
   const glitters = [
     { dx: -25, dy: -35, delay: '0s', size: 12, anim: 'glitter-1' },
     { dx: 30, dy: -20, delay: '0.2s', size: 9, anim: 'glitter-2' },
@@ -460,6 +565,7 @@ export default function HeroCharacter({
       onTouchEnd={handleTouchEnd}
       className="relative w-full aspect-[432/578] select-none pointer-events-auto overflow-visible"
     >
+      {/* Canvas scratch revealing pad */}
       <canvas
         ref={canvasRef}
         aria-label="Roshit — scratch reveal"
@@ -467,6 +573,7 @@ export default function HeroCharacter({
         style={{ cursor: 'none' }}
       />
 
+      {/* Glitter floating particles */}
       {wobbleActive && glitters.map((glit, i) => (
         <span
           key={i}
@@ -478,7 +585,13 @@ export default function HeroCharacter({
             animationDelay: glit.delay,
           }}
         >
-          <svg width={glit.size} height={glit.size} viewBox="0 0 24 24" fill="#C5FF3B" className="drop-shadow-[0_0_4px_#C5FF3B]">
+          <svg
+            width={glit.size}
+            height={glit.size}
+            viewBox="0 0 24 24"
+            fill="#C5FF3B"
+            className="drop-shadow-[0_0_4px_#C5FF3B]"
+          >
             <path d="M12 0L15 9L24 12L15 15L12 24L9 15L0 12L9 9Z" />
           </svg>
         </span>

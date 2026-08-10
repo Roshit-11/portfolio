@@ -190,6 +190,9 @@ const Hero = () => {
         <div className="section-shell relative z-10 flex flex-col items-center text-center gap-6">
           <h1 className="font-serif text-4xl font-bold text-ink">Hey — I&apos;m Roshit.</h1>
           <div className="w-64"><HeroCharacter showHint={false} /></div>
+          <span className="font-mono text-[10px] tracking-wider uppercase text-muted bg-[#EDEBE4] px-3.5 py-1.5 rounded-full select-none">
+            💻 Visit on desktop for 3D interactions
+          </span>
           <p className="max-w-xs text-ink-soft">Welcome in. Have a look around, and leave a review on your way out.</p>
         </div>
       </section>
