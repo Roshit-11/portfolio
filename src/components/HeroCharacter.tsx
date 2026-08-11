@@ -195,8 +195,8 @@ export default function HeroCharacter({
     const helm = new Image();
     helm.src = '/hero/cartoon.png';
 
-    // R_BRUSH is dynamic: smaller on mobile screens (34) for touch precision, 62 on laptops
-    let R_BRUSH = window.innerWidth < 1024 ? 34 : 62;
+    // R_BRUSH is dynamic: smaller on mobile screens (27) for touch precision, 50 on laptops
+    let R_BRUSH = window.innerWidth < 1024 ? 27 : 50;
 
     // ── Per-stamp timing (in frames at ~60fps) ──
     const HOLD_FRAMES = 45;   // ~0.75 s at full opacity
@@ -213,7 +213,7 @@ export default function HeroCharacter({
         c.width = w;
         c.height = h;
       });
-      R_BRUSH = window.innerWidth < 1024 ? 34 : 62;
+      R_BRUSH = window.innerWidth < 1024 ? 27 : 50;
     };
     resize();
     window.addEventListener('resize', resize);
@@ -324,7 +324,7 @@ export default function HeroCharacter({
         const rx = layoutW * 0.34;
         const ry = layoutH * 0.30;
 
-        const speed = isMobile ? 0.0006 : 0.0008; // slightly slower on mobile
+        const speed = isMobile ? 0.0002 : 0.0003; // slightly slower on mobile
         const t = time * speed;
         s.px = cx + Math.sin(t * 1.4) * rx;
         s.py = cy + Math.cos(t * 1.9) * ry;
