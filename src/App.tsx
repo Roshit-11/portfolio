@@ -64,9 +64,13 @@ function App() {
           <Projects />
           <Skills />
           <Certifications />
-          <Contact />
+          {/* Footer viewport: on lg+ the contact panel + footer occupy exactly one screen */}
+          {/* Lime frame; the dark panel is inset inside it, header floats on the top strip */}
+          <div className="footer-viewport bg-[#C5FF3B] overflow-hidden lg:h-screen lg:flex lg:flex-col lg:pt-[88px] lg:px-3">
+            <Contact />
+            <Footer />
+          </div>
         </main>
-        <Footer />
       </div>
     </TechHighlightProvider>
   );

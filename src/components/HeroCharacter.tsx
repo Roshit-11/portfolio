@@ -435,10 +435,15 @@ export default function HeroCharacter({
       // 5. Render composition
       ctx.clearRect(0, 0, W, H);
       if (real.complete && helm.complete && real.naturalWidth) {
+        const helmYOffset = 28 * dpr;
+
         // Draw the helmet base layer (with VISOR HUD details) at the bottom
+        ctx.save();
+        ctx.translate(0, helmYOffset);
         ctx.globalCompositeOperation = 'source-over';
         ctx.drawImage(helm, 0, 0, W, H);
         drawHUDOverlay(ctx, W, H, time);
+        ctx.restore();
 
         // Erase the scratch trail area from the helmet base layer
         ctx.globalCompositeOperation = 'destination-out';

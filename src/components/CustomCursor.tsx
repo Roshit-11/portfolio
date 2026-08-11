@@ -33,6 +33,13 @@ export default function CustomCursor() {
       const target = e.target as HTMLElement | null;
       if (!target) return;
 
+      // Inside the contact lightbox the cursor stays the small lime dot — the
+      // large hover blob covers the fields you're trying to type into.
+      if (target.closest('.contact-modal-panel')) {
+        setMode('default');
+        return;
+      }
+
       const interactive = target.closest('a, button, input, textarea, select, [role="button"], .card-interactive');
       const dragEl = target.closest('[data-cursor="drag"]');
       const viewEl = target.closest('[data-cursor="view"]');

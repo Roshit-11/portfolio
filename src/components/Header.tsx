@@ -31,11 +31,19 @@ const scrollToId = (e: React.MouseEvent, id: string) => {
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [overFooter, setOverFooter] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [resumeOpen, setResumeOpen] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setIsScrolled(window.scrollY > 40);
+    const onScroll = () => {
+      setIsScrolled(window.scrollY > 40);
+      // Over the closing panel the header sits on the lime frame, so it drops
+      // its own surface and lets that colour through.
+      const panel = document.getElementById('contact');
+      setOverFooter(!!panel && panel.getBoundingClientRect().top <= 96);
+    };
+    onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
@@ -59,30 +67,34 @@ const Header = () => {
     <>
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          isScrolled ? 'bg-paper/80 backdrop-blur-md' : 'bg-transparent'
+          overFooter
+            ? 'bg-transparent'
+            : isScrolled
+              ? 'bg-paper/80 backdrop-blur-md'
+              : 'bg-transparent'
         }`}
       >
         <div className="flex justify-between items-center px-5 sm:px-8 py-4">
           {/* name logo (top-left) */}
           <a href="#hero" aria-label="Back to top" className="leading-[0.88]">
-            <span className="block font-sans font-extrabold uppercase tracking-tight text-ink text-lg sm:text-2xl">Roshit</span>
-            <span className="block font-sans font-extrabold uppercase tracking-tight text-ink text-lg sm:text-2xl">Lamichhane</span>
+            <span className="block font-sans font-extrabold uppercase tracking-tight text-ink text-xl sm:text-3xl">Roshit</span>
+            <span className="block font-sans font-extrabold uppercase tracking-tight text-ink text-xl sm:text-3xl">Lamichhane</span>
           </a>
 
           {/* actions (top-right) */}
           <div className="flex items-center gap-2.5">
             <button
               onClick={() => setResumeOpen(true)}
-              className="inline-flex items-center gap-2 bg-lime text-ink font-bold text-sm px-5 py-2.5 rounded-full shadow-sm hover:brightness-95 transition"
+              className="inline-flex items-center gap-2 bg-lime text-ink font-bold text-base px-6 py-3 rounded-full shadow-sm hover:brightness-95 transition"
             >
-              <FileText size={16} aria-hidden="true" /> Resume
+              <FileText size={18} aria-hidden="true" /> Resume
             </button>
             <button
               onClick={() => setMenuOpen(true)}
               aria-label="Open menu"
-              className="w-11 h-11 grid place-items-center rounded-xl border border-ink/25 text-ink hover:bg-surface transition"
+              className="w-12 h-12 grid place-items-center rounded-xl border border-ink/25 text-ink hover:bg-surface transition"
             >
-              <Menu size={20} />
+              <Menu size={24} />
             </button>
           </div>
         </div>
@@ -92,14 +104,14 @@ const Header = () => {
       {menuOpen && (
         <div className="fixed inset-0 z-[70] bg-ink-950 text-paper flex flex-col animate-fade-up">
           <div className="flex justify-between items-center px-5 sm:px-8 py-4">
-            <span className="font-sans font-extrabold uppercase tracking-tight text-lg sm:text-2xl leading-[0.88]">
+            <span className="font-sans font-extrabold uppercase tracking-tight text-xl sm:text-3xl leading-[0.88]">
               Roshit<br />Lamichhane
             </span>
             <button
               onClick={() => setMenuOpen(false)}
-              className="w-11 h-11 grid place-items-center rounded-xl border border-white/20 hover:bg-white/10 transition"
+              className="w-12 h-12 grid place-items-center rounded-xl border border-white/20 hover:bg-white/10 transition"
             >
-              <X size={20} />
+              <X size={24} />
             </button>
           </div>
           <nav className="flex-1 flex flex-col justify-center gap-1 px-6 sm:px-16" aria-label="Primary">

@@ -308,3 +308,118 @@ textarea:focus ~ .electric-border-line {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Horizontal scrolling marquee for tech stack */
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 30s linear infinite;
+}
+
+/* Reveal transition for contact card */
+.contact-card-reveal {
+  opacity: 0;
+  transform: translateY(60px) scale(0.96);
+  transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.contact-card-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* ---- Footer panel entrance ----
+   Each piece of the closing panel eases up as the section lands, so arriving at
+   the bottom of the page reads as a composition assembling rather than a jump.
+   Uses the standalone `translate` property, not `transform`, so it composes with
+   Tailwind's -translate-x-1/2 centering instead of wiping it out. */
+.footer-stage-item {
+  opacity: 0;
+  translate: 0 34px;
+  transition:
+    opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+    translate 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.footer-stage.is-visible .footer-stage-item {
+  opacity: 1;
+  translate: 0 0;
+}
+/* headline → bust → columns → marquee → CTA */
+.footer-stage.is-visible .footer-stage-item:nth-child(1) { transition-delay: 0.05s; }
+.footer-stage.is-visible .footer-stage-item:nth-child(2) { transition-delay: 0.16s; }
+.footer-stage.is-visible .footer-stage-item:nth-child(3) { transition-delay: 0.28s; }
+.footer-stage.is-visible .footer-stage-item:nth-child(4) { transition-delay: 0.4s; }
+.footer-stage.is-visible .footer-stage-item:nth-child(5) { transition-delay: 0.5s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .footer-stage-item {
+    opacity: 1;
+    translate: none;
+    transition: none;
+  }
+}
+
+
+
+/* ---- Footer panel neon ---- */
+/* Slower crawl for the tech ticker than the default marquee. */
+.marquee-slow {
+  animation-duration: 55s;
+}
+
+/* Neon lettering for the ticker: tight core glow plus a wider bloom. */
+.neon-text {
+  text-shadow:
+    0 0 6px rgba(197, 255, 59, 0.55),
+    0 0 18px rgba(197, 255, 59, 0.35),
+    0 0 40px rgba(197, 255, 59, 0.18);
+}
+
+/* Keeps the visor's cyber lighting and lifts it with an outer lime glow. */
+.bust-neon {
+  filter:
+    drop-shadow(0 0 14px rgba(197, 255, 59, 0.35))
+    drop-shadow(0 0 42px rgba(197, 255, 59, 0.22))
+    saturate(1.12)
+    contrast(1.06);
+}
+
+/* ---- Contact modal entrance ---- */
+@keyframes contactModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(26px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes contactBackdropIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.contact-modal-backdrop {
+  animation: contactBackdropIn 0.28s ease-out both;
+}
+.contact-modal-panel {
+  animation: contactModalIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.contact-modal-panel > * {
+  animation: contactModalIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.contact-modal-panel > *:nth-child(2) { animation-delay: 0.06s; }
+.contact-modal-panel > *:nth-child(3) { animation-delay: 0.1s; }
+.contact-modal-panel > *:nth-child(4) { animation-delay: 0.14s; }
+.contact-modal-panel > *:nth-child(5) { animation-delay: 0.18s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .contact-modal-backdrop,
+  .contact-modal-panel,
+  .contact-modal-panel > * {
+    animation: none;
+  }
+}
